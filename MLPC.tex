@@ -33,14 +33,7 @@
 \date{\today}
 
 \abstract{
-This skeleton demonstrates how to use the \texttt{infthesis} style for
-MSc dissertations in the School of Informatics. It also emphasises the
-page limit and associated style restrictions for Informatics dissertations
-with course code \texttt{INFR11077}. If your degree has a different project
-course code, then it is likely to have different formatting rules.
-The file \texttt{skeleton.tex} generates this document and should be used as a
-starting point for your thesis. Replace this abstract text with a concise
-summary of your report.
+A significant amount of time is spent executing loops for most compute-bound applications. By leveraging the polyhedral model, PolyGym\cite{9563041} has presented the scheduling of a particular class of loops having regular structure as a Markov Decision Process. Given the wide range of the programs presented to the compiler, learning profitable schedules is a complex task. Deep Reinforcement Learning methods such as Deep Q-Learning have recently successfully solved complex problems. Building on top of PolyGym, the proposed research advances the emerging field of Machine Learning for Compiler Optimizations by implementing and evaluating established Deep Reinforcement Learning algorithms on PolyBench data sets \cite{polybench}.
 }
 
 \maketitle
@@ -50,24 +43,7 @@ summary of your report.
    {\end{frontenv}\newpage}
 
 \begin{ethics}
-\textbf{Instructions:} \emph{Agree with your supervisor which
-statement you need to include. Then delete the statement that you are not using,
-and the instructions in italics.\\
-\textbf{Either complete and include this statement:}}\\ % DELETE THESE INSTRUCTIONS
-%
-% IF ETHICS APPROVAL WAS REQUIRED:
-This project obtained approval from the Informatics Research Ethics committee.\\
-Ethics application number: ???\\
-Date when approval was obtained: YYYY-MM-DD\\
-%
-\emph{[If the project required human participants, edit as appropriate, otherwise delete:]}\\ % DELETE THIS LINE
-The participants' information sheet and a consent form are included in the appendix.\\
-%
-% IF ETHICS APPROVAL WAS NOT REQUIRED:
-\textbf{\emph{Or include this statement:}}\\ % DELETE THIS LINE
-This project was planned in accordance with the Informatics Research
-Ethics policy. It did not involve any aspects that required approval
-from the Informatics Research Ethics committee.
+This research does not involve any human participants or personal data. All data are collected based on simulation experiments on benchmark suites; hence no ethical concerns are associated with the project.
 
 \standarddeclaration
 \end{ethics}
@@ -84,84 +60,59 @@ Any acknowledgements go here.
 
 \chapter{Introduction}
 
-The preliminary material of your report should contain:
+\section{Motivation}
+
+Reinforcement Learning(RL) has recently been seen as a promising approach for compiler optimization \cite{8357388}\cite{9232934}. A Reinforcement Learning agent makes the \textit{observations} within the \textit{environment}, and takes \textit{actions} to receive certain \textit{rewards}. The goal is to maximize the rewards over a period of time. On the other side, to achieve optimizations related to data locality, memory management, communication, and automatic parallelization, the space of the possible transformations available to a compiler is vast. Applying Machine Learning(ML) algorithms to find a good strategy in this space is challenging. Polyhedral Compilation is one type of compiler optimization technique applicable to a particular class of nested loops. It can explore geometric dependency properties of kernel statements in different iterations and apply transformations to improve the schedule of the loop execution. In compiler optimization, machine learning is yet to achieve the level of success in other fields such as Computer Vision or Natural Language Processing. Even though it has been an object of research for more than two decades, machine learning guided techniques are still not widely utilized in industrial compilers.
+
+This project proposal is structured as follows: Following the discussion regarding the problem statement, research objective, novelty, and significance of the project in Section 1, Section 2 provides an overview of the background and literature review. Section 3 focuses on project methodology, limitations, risks, and ethical considerations. Section 4 explains how the evaluation of the developed methods will be carried out. Section 5 discusses expected outcomes, and Section 6 outlines the research timeline, milestones, and deliverables.
+
+\section{Objectives}
+
+The aim of the project is to analyze how Reinforcement Learning can help improve Polyhedral Compilation. This analysis will be performed with the help of Deep Neural Networks and other hybrid meta-heuristics. The research hypothesis is that Reinforcement Learning algorithms can be generalized to learn Polyhedral Compilation.
+
+It is not always clear how to represent the actual problem in a Reinforcement Learning environment. However, this part has already been covered in Polygym\cite{9563041}; hence it is not going to be the focus of this research. The main objectives for this project are trying to find answers to these questions:
 \begin{itemize}
-\item
-The title page.
-\item
-An abstract page.
-\item
-Declaration of ethics and own work.
-\item
-Optionally an acknowledgements page.
-\item
-The table of contents.
+
+    \item Can we implement a Deep Reinforcement Learning algorithm that can help select the best actions related to polyhedral transformations? 
+    \item Can we design reward functions that improve the training performance to learn profitable schedules?
+    \item Can we explore different RL algorithms and find the most suitable technique by evaluating their performance?
+
+
 \end{itemize}
 
-As in this example \texttt{skeleton.tex}, the above material should be
-included between:
-\begin{verbatim}
-\begin{preliminary}
-    ...
-\end{preliminary}
-\end{verbatim}
-This style file uses roman numeral page numbers for the preliminary material.
+\section{Structure}
 
-The main content of the dissertation, starting with the first chapter,
-starts with page~1. \emph{\textbf{The main content must not go beyond page~40.}}
+\chapter{Background}
 
-The report then contains a bibliography and any appendices, which may go beyond
-page~40. The appendices are only for any supporting material that's important to
-go on record. However, you cannot assume markers of dissertations will read them.
+\section{Polyhedral Compilation}
 
-You may not change the dissertation format (e.g., reduce the font size, change
-the margins, or reduce the line spacing from the default 1.5 spacing). Be
-careful if you copy-paste packages into your document preamble from elsewhere.
-Some \LaTeX{} packages, such as \texttt{fullpage} or \texttt{savetrees}, change
-the margins of your document. Do not include them!
+The iteration space of a nested loop can be represented as an n-dimensional geometric model called a polytope. The optimization through Polyhedral Compilation is achieved in three different stages, moving from code to polyhedron model, applying program transformations within the model, and finally regenerating the code from the model. This model gives the framework to transform the loops, where the array references and loop bounds are affine functions of loop iterators and parameters. The polyhedral model is broadly applicable due to the high presence of affine loops in compute-bound applications\cite{poly_applicable}. In the kernel example shown in Figure 1, geometric interpretations such as two-dimensional polygons can be used to visualize dependencies between statements. Based on these dependencies, conclusions can be made regarding the preferred execution time of each statement. 
 
-Over-length or incorrectly-formatted dissertations will not be accepted and you
-would have to modify your dissertation and resubmit. You cannot assume we will
-check your submission before the final deadline and if it requires resubmission
-after the deadline to conform to the page and style requirements you will be
-subject to the usual late penalties based on your final submission time.
+\section{Deep Reinforcement Learning}
 
-\section{Using Sections}
+The concept of Reinforcement Learning is one of the oldest in the field of Machine Learning, but it found huge success when DeepMind researchers used it to play Atari games outperforming humans \cite{DeepMind}. In March 2016, DeepMind created AlphaGo, which later on beat the world champion in the game of Go \cite{AlphaGo}. They achieved it by applying methods of Deep Learning on Reinforcement Learning, specifically using techniques such as \textit{Deep Q-Networks} (DQNs) and \textit{Policy Gradients}. The value of an action \textit{a} can be explained as the total reward received by executing it in a state \textit{s}. In Q-Learning, the agent uses these state-action values to make a decision. However, this approach might struggle when the number of states is vast. This challenge can be overcome by approximating Q-Values of required state-action pairs, using a range of parameters. Deep Neural Networks (DNN) have proven very effective for this purpose. Using such Deep Q-Networks(DQN) for approximating the Q-Learning is called Deep Q-Learning.
 
-Divide your chapters into sub-parts as appropriate.
+\section{PolyGym}
 
-\section{Citations}
+PolyGym provides an environment of Polyhedral optimizations for Reinforcement Learning, adhering to OpenAI Gym interface \cite{Gym}, which is a toolkit for solving RL problems. Suppose the actions are chosen to directly represent the transformations, such as loop fusion or tiling. In that case, the model may learn the profitable schedules only for a particular set of loops or domains. Instead, PolyGym takes a more granular approach\footnote{https://github.com/PolyGym/polygym}. For constructing the space of valid schedules, it uses the existing formulation of Farkas' lemma from discrete geometry. In the next step, a Markov decision process(MDP) can explore this space to find a profitable schedule, independent of the loop being optimized. Hence, this makes it a two-stage technique, the construction of schedule space and its exploration, using two different Markov Decision Processes with different states and actions. This framework, however, still lacks a training agent, although just by using this simple heuristic, PolyGym is able to find transformations that lead to a speed up of 3.39x over LLVM Or and 1.34x over best isl transformation \cite{9563041}. As shown in Figure 2, it should be noted that PolyGym does not use any agent, but an agent can use the environment defined by PolyGym for learning.
 
-Citations (such as \cite{P1} or \cite{P2} or \cite{P3}) can be generated using
-\texttt{BibTeX}. For more advanced usage, we recommend using the \texttt{natbib}
-package or the newer \texttt{biblatex} system.
+\section{Literature Review}
 
-These examples use a numerical citation style. You may use any consistent
-reference style that you prefer, including ``(Author, Year)'' citations.
+Previous surveys have explored the relationship between Machine Learning and Compiler Optimizations \cite{8357388}\cite{9232934}. Several studies have also begun to examine how RL can be applied to the field of compiler optimizations. In 2014, Emani \textit{et al.} demonstrated a new approach for dynamically mapping parallel programs to varying system resources \cite{10.1007}. They used Markov Decision Process for online thread scheduling and an offline model trained based on the system environment and the structure of the code. Similar to PolyGym, CompilerGym extends the Gym interface to provide a reinforcement learning environment to researchers for compiler optimizations \cite{CompilerGym}. A recent study by Mammadli \textit{et al.} presented an excellent example of using Deep Reinforcement Learning for finding effective sequences of phase-ordering, which is a long-standing problem for compiler generators \cite{static.neural}. However, finding profitable loop transformations is a much more fine-drawn problem than finding the optimum number of threads or distributing the work on different cores. In an investigation related to current Single Instruction, Multiple Data (SIMD) architectures, Neurovectorizer \cite{NeuroVectorizer} addresses the challenge to find a good vectorization strategy with the help of Deep Reinforcement Learning. MLGO \cite{10.48550} attempted to leverage Reinforcement Learning and Evolutionary Algorithms for making decisions about function in-lining for improving code size. However, the evaluation for the code size could be less challenging than the evaluation of the heuristics focusing on the program's execution speed due to the uncertainty involved in the time taken during each execution.
 
-\chapter{Your next chapter}
+All these methods, however, did not consider polyhedral optimizations. In 1993, Feautrier presented the theoretical basis of the polyhedral formulation for single and multidimensional schedules \cite{single}\cite{multi}. After more than twenty years, Pouchet \textit{et al.} proposed an iterative optimization method for systematic exploration of the schedule search space \cite{it_Single}\cite{it_multi}. Building on top of these methods, Ganser \textit{et al.} demonstrated improvements in optimization with the use of genetic algorithms in 2017 \cite{10.1145/3109482}. One year later, they showed a reduction in benchmarking efforts by using surrogate performance models, where they trained the models based on the program transformation evaluated in the previous iterative optimizations, at the cost of 15\% degradation in speed-up \cite{10.1145/3291773}. This set of methods followed the iterative approach with benchmarking, making them time-consuming. In contrast, methods such as isl\cite{isl} and Pluto\cite{Bondhugula07pluto:a} generated the models directly to find a good compilation strategy in less time. However, this approach has certain limitations. The optimization performed is still dependent on the type of loop being analyzed, and its performance can not beat the time taking iterative methods. Hence, the proposed research with Reinforcement Learning fits very well between these two approaches.
 
-A dissertation usually contains several chapters.
+\chapter{Methodology}
+
+\chapter{Evaluation}
+
+\chapter{Results and Discussions}
 
 \chapter{Conclusions}
 
-\section{Final Reminder}
+\section{Unresolved Issues}
 
-The body of your dissertation, before the references and any appendices,
-\emph{must} finish by page~40. The introduction, after preliminary material,
-should have started on page~1.
-
-You may not change the dissertation format (e.g., reduce the font size, change
-the margins, or reduce the line spacing from the default 1.5 spacing). Be
-careful if you copy-paste packages into your document preamble from elsewhere.
-Some \LaTeX{} packages, such as \texttt{fullpage} or \texttt{savetrees}, change
-the margins of your document. Do not include them!
-
-Over-length or incorrectly-formatted dissertations will not be accepted and you
-would have to modify your dissertation and resubmit. You cannot assume we will
-check your submission before the final deadline and if it requires resubmission
-after the deadline to conform to the page and style requirements you will be
-subject to the usual late penalties based on your final submission time.
+\section{Future Work}
 
 \bibliographystyle{plain}
 \bibliography{mybibfile}
@@ -174,21 +125,8 @@ subject to the usual late penalties based on your final submission time.
 
 \section{First section}
 
-Any appendices, including any required ethics information, should be included
-after the references.
 
-Markers do not have to consider appendices. Make sure that your contributions
-are made clear in the main body of the dissertation (within the page limit).
 
-\chapter{Participants' information sheet}
-
-If you had human participants, include key information that they were given in
-an appendix, and point to it from the ethics declaration.
-
-\chapter{Participants' consent form}
-
-If you had human participants, include information about how consent was
-gathered in an appendix, and point to it from the ethics declaration.
 
 
 \end{document}
