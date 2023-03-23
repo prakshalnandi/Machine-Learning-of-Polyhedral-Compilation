@@ -22,6 +22,8 @@
 % you should catch most accidental changes of page layout though.
 
 \usepackage{microtype} % recommended, but you can remove if it causes problems
+\usepackage{graphicx}
+\usepackage{subfig}
 
 \begin{document}
 \begin{preliminary}
@@ -33,7 +35,9 @@
 \date{\today}
 
 \abstract{
-A significant amount of time is spent executing loops for most compute-bound applications. By leveraging the polyhedral model, PolyGym\cite{9563041} has presented the scheduling of a particular class of loops having regular structure as a Markov Decision Process. Given the wide range of the programs presented to the compiler, learning profitable schedules is a complex task. Deep Reinforcement Learning methods such as Deep Q-Learning have recently successfully solved complex problems. Building on top of PolyGym, the proposed research advances the emerging field of Machine Learning for Compiler Optimizations by implementing and evaluating established Deep Reinforcement Learning algorithms on PolyBench data sets \cite{polybench}.
+In most compute-intensive applications, a significant amount of time is spent on the execution of the loops. Compilers like clang offer many optimisation options such as loop tiling, unrolling, vectorization or parallel processing. Most optimizations are still particular to the loop they are trying to transform and require specific knowledge in this domain. If the loops follow a specific structure, it is possible to change the execution order of the loop statements to make the program run faster. But finding a profitable schedule at the compile time is a complex task, as there are lots of constraints and dependencies involved.
+
+Fortunately, using the OpenAI Gym interface, PolyGym has converted this problem into an environment of optimizations for Reinforcement Learning algorithms. The loops are converted into polyhedral representation, upon which different transformations can be applied. This thesis explores the feasibility of using a Reinforcement Learning agent to find a profitable schedule. First, we generate valid schedules using agent-chosen actions transforming the polyhedral model. Secondly, we are doing a search in the space of the possible schedule to find the optimal solution using a different RL agent. Finally, with the help of some experiments, we show how different RL algorithms perform, starting from basic Q-Learning algorithm to more advanced and popular deep reinforcement learning algorithms.
 }
 
 \maketitle
@@ -64,7 +68,7 @@ Any acknowledgements go here.
 
 Reinforcement Learning(RL) has recently been seen as a promising approach for compiler optimization \cite{8357388}\cite{9232934}. A Reinforcement Learning agent makes the \textit{observations} within the \textit{environment}, and takes \textit{actions} to receive certain \textit{rewards}. The goal is to maximize the rewards over a period of time. On the other side, to achieve optimizations related to data locality, memory management, communication, and automatic parallelization, the space of the possible transformations available to a compiler is vast. Applying Machine Learning(ML) algorithms to find a good strategy in this space is challenging. Polyhedral Compilation is one type of compiler optimization technique applicable to a particular class of nested loops. It can explore geometric dependency properties of kernel statements in different iterations and apply transformations to improve the schedule of the loop execution. In compiler optimization, machine learning is yet to achieve the level of success in other fields such as Computer Vision or Natural Language Processing. Even though it has been an object of research for more than two decades, machine learning guided techniques are still not widely utilized in industrial compilers.
 
-This project proposal is structured as follows: Following the discussion regarding the problem statement, research objective, novelty, and significance of the project in Section 1, Section 2 provides an overview of the background and literature review. Section 3 focuses on project methodology, limitations, risks, and ethical considerations. Section 4 explains how the evaluation of the developed methods will be carried out. Section 5 discusses expected outcomes, and Section 6 outlines the research timeline, milestones, and deliverables.
+
 
 \section{Objectives}
 
@@ -81,6 +85,8 @@ It is not always clear how to represent the actual problem in a Reinforcement Le
 \end{itemize}
 
 \section{Structure}
+
+This project proposal is structured as follows: Following the discussion regarding the problem statement, research objective, novelty, and significance of the project in Section 1, Section 2 provides an overview of the background and literature review. Section 3 focuses on project methodology, limitations, risks, and ethical considerations. Section 4 explains how the evaluation of the developed methods will be carried out. Section 5 discusses expected outcomes, and Section 6 outlines the research timeline, milestones, and deliverables.
 
 \chapter{Background}
 
@@ -103,6 +109,31 @@ Previous surveys have explored the relationship between Machine Learning and Com
 All these methods, however, did not consider polyhedral optimizations. In 1993, Feautrier presented the theoretical basis of the polyhedral formulation for single and multidimensional schedules \cite{single}\cite{multi}. After more than twenty years, Pouchet \textit{et al.} proposed an iterative optimization method for systematic exploration of the schedule search space \cite{it_Single}\cite{it_multi}. Building on top of these methods, Ganser \textit{et al.} demonstrated improvements in optimization with the use of genetic algorithms in 2017 \cite{10.1145/3109482}. One year later, they showed a reduction in benchmarking efforts by using surrogate performance models, where they trained the models based on the program transformation evaluated in the previous iterative optimizations, at the cost of 15\% degradation in speed-up \cite{10.1145/3291773}. This set of methods followed the iterative approach with benchmarking, making them time-consuming. In contrast, methods such as isl\cite{isl} and Pluto\cite{Bondhugula07pluto:a} generated the models directly to find a good compilation strategy in less time. However, this approach has certain limitations. The optimization performed is still dependent on the type of loop being analyzed, and its performance can not beat the time taking iterative methods. Hence, the proposed research with Reinforcement Learning fits very well between these two approaches.
 
 \chapter{Methodology}
+
+\section{Clang/LLVM/Polly}
+
+LLVM is a set of optimiser libraries built around an intermediate representation of the code, known as LLVM-IR. Like many other analyzing and optimizing tools, it uses the Clang frontend, a \textit{C} language family compiler, as a library.
+Polly applies polyhedral transformations on top of this intermediate representation. It first identifies relevant regions of the code suitable for transformations, called Static Control Parts(\textit{SCoP}). It then transforms these regions into a polyhedral representation based on integer sets and maps. On this representation, it applies optimisations, for example, related to data locality and parallelism, finally converting it back into the optimised version of the executable code. As Polly analyses the low-level IR instead of the programming language itself, it is not dependent on any language or platform.
+
+A \textit{SCoP}, generally consisting of loops and conditions, contains part of the program for which control flow and memory access can be determined at the compile time. For a loop to be identified as \textit{SCoP}, the scalar expression for the iteration count should be able to be represented as an affine function. Similarly, the memory accesses for loading and storing should also be possible to be translated into an affine expression. Polly allows the export of this polyhedral representation into a \textit{JSON} based format called \textit{jSCoP}.
+This allows us to apply external optimization, which can be imported back using the same \textit{jSCoP} format.
+
+ Figure \ref{fig:Original_Loop} showcases an example of a \textit{C} loop doing matrix multiplication. Using \textit{clang}, we can identify the \textit{SCoP} parts of the code and convert them into LLVM representation as displayed in Figure \ref{fig:Poly_Rep}. The representation consists of statements as basic building blocks. Apart from its name, a \textit{statement} consists of \textit{Domain}, \textit{Schedule} and \textit{Access}. The \textit{domain} represents a set of different loop iterations executing the statement, as a named integer set. The \textit{schedule} is an integer map which assigns a point to each iteration in a multi-dimensional space following lexicographical order. Changing the schedule will change the order in which the kernel is executed. \textit{Access} is a pair of kind and relation. The kind can be either \textit{read}, \textit{write} or may \textit{write}. The access relation maps the domain with the memory space, which generally can be represented by an affine function. Figure \ref{fig:Dependencies} explains the dependencies information extracted from the above representation, which can exist between two statements or two iterations of the same statement. When the transformations have been applied, AST can be generated from the LLVM representation as shown in Figure \ref{fig:AST} and the program can be executed.
+ 
+\begin{figure}[!tb]
+  \centering
+  \subfloat[Original Loop in C.]{\includegraphics[width=0.5\textwidth]{Original_Loop.png}\label{fig:Original_Loop}}
+  \hfill
+  \subfloat[Polyhedral Representation of the identified SCoP.]{\includegraphics[width=0.5\textwidth]{Poly_Rep.png}\label{fig:Poly_Rep}}
+
+  \centering
+  \subfloat[Dependency Analysis.]{\includegraphics[width=0.5\textwidth]{Dependencies.png}\label{fig:Dependencies}}
+  \hfill
+  \subfloat[AST Generation from IR.]{\includegraphics[width=0.5\textwidth]{AST.png}\label{fig:AST}}
+  
+  \caption{Generation of SCoP and AST using LLVM Polly}
+\end{figure}
+
 
 \chapter{Evaluation}
 
