@@ -20,7 +20,8 @@
 % Include any packages you need below, but don't include any that change the page
 % layout or style of the dissertation. By including the ugcheck package above,
 % you should catch most accidental changes of page layout though.
-
+\documentclass{article}
+\usepackage{mathtools}
 \usepackage{microtype} % recommended, but you can remove if it causes problems
 \usepackage{graphicx}
 \usepackage{subfig}
@@ -156,15 +157,67 @@ A_{con} = \{next\_dimension, \hspace{1} select\_dependency, \hspace{1} next\_dep
 
 (add more explanation for actions)
 
-The states during this phase represents information of dependecies with respect to the current dimension and it can be described as Equestion \ref{eq:CONST_SPC}
+The states during this phase represents information of dependecies with respect to the current dimension and it can be described as Equation \ref{eq:CONST_SPC}
 
 \begin{equation}
-S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} d_{1i};\hspace{2} d_{1j};\hspace{2} d_{1k};\hspace{2} d_{2i};\hspace{2} d_{2j};\hspace{2} d_{2k};\hspace{2} n_d,\hspace{2} n_a)
+S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 \label{eq:CONST_SPC}
 \end{equation}
 
-In this representation, \textit{i\textsubscript{dim}} represents the current dimension, and \textit{i\textsubscript{dep}} represents the current dependency pointer. \textit{d\textsubscript{1i,1j,1k}} are related to loop variables of the first statement of the dependency and \textit{d\textsubscript{2i,2j,2k}} are variables for the second statements. We currently consider SCOP having a maximum of three iteration variables. \textit{n\textsubscript{d}} stores the number of strong dependencies added in current dimensions, and \textit{n\textsubscript{a}}
-represents the number of total available dependencies.
+In this representation, \textit{i\textsubscript{dim}} represents the current dimension, and \textit{i\textsubscript{dep}} represents the current dependency pointer. \textit{n\textsubscript{d}} stores the number of strong dependencies added in current dimensions, and \textit{n\textsubscript{a}}
+represents the number of total available dependencies across all dimensions which are yet to be added strongly.
+
+Using this representation, the agent could learn if it trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup achieved during the training. While this shows that the agent's implementation is correct, more was needed to solve the problem of generalization. While testing this agent on another kernel, the performance was significantly poor.
+
+A critical piece of information we missed was the actual parameters associated with the dependency. A dependency statement can be defined as shown below.
+\begin{equation}
+\begin{multlined}
+[n_i, \hspace{2} n_j, \hspace{2} n_k] \hspace{2} -> \hspace{2} Stmt\_for\_body8[i_0, \hspace{2} i_1] -> Stmt\_for\_body16[i_0', \hspace{2} i_1', \hspace{2} i_2] : \\
+i_0' = i_0 \hspace{2} and \hspace{2} i_1' = 0 \hspace{2} and \hspace{2} i_2 = i_1 \hspace{2} and \hspace{2} n_k > 0 \hspace{2} and \hspace{2} 0 <= i_0 < n_i \hspace{2} and \hspace{2} 2i_1<=i_0
+\label{eq:DEP_STMT}
+\end{multlined}
+\end{equation}
+
+The dependency defined in \ref{eq:DEP_STMT} consists of \textit{domain} variables, \textit{statements} and variable bounds which can be presented as affine functions. To provide all the inequalities a regular structure, we converted all the expressions in the format of less than equal to zero. 
+For example, \textit{$0 \leq \hspace{2}$i\textsubscript{0} $< \hspace{2}$n\textsubscript{i}}  can be transformed to two different affine functions \textit{$-i\textsubscript{0} \leq \hspace{2}$0} and \textit{$i\textsubscript{0} - \hspace{2}n\textsubscript{i} + 1 \leq \hspace{2}$0}. We are allowing dependencies having four variables and four domain parameters. 
+Hence we can have four variables \textit{$i_0, \hspace{2} i_1, \hspace{2} i_2, \hspace{2} i_3$}, four prime variables for the second statement \textit{$i_0', \hspace{2} i_1', \hspace{2} i_2', \hspace{2} i_3'$}, four domains \textit{$n_i, \hspace{2} n_j, \hspace{2} n_k, \hspace{2} n_m$} and one constant. Thus, inequality can be expressed in terms of the vector as shown below.\break
+\begin{center}
+\textit{$i\textsubscript{0} - \hspace{2}n\textsubscript{i} + 1 \leq \hspace{2}$0} \hspace{4} \verb|->| \hspace{4} [1 0 0 0 0 0 0 0 -1 0 0 0 1]
+\end{center}
+
+If we allow such 8 inequalities in one dependency statement, the number of variables used to represent the statement will be 13 * 2 * 8 = 208.
+
+The last two parameters of the state representation, the number of strong dependencies added in the current dimension and the number of available dependencies to be added, also presented a few challanges. Firstly, they do not contain the information on which dependency was added strongly and which dependency is yet to be added. Secondly, the number of dependencies could be as high as more than 80 in the kernels such as \textit{ludcmp}. Hence, we decided to use one-hot encoding to state the added and available dependencies. For instance, if the maximum number of dependencies considered is 10, the dependencies added in the current dimension can be defined as:
+
+\begin{center}
+[1 0 0 0 1 1 0 0 0 0],
+\end{center}
+
+showcasing that dependency numbers 1, 5, and 6 are added strongly in the current dimension. Similarly, to define available dependencies, we use vector
+\begin{center}
+[0 1 0 0 0 0 0 0 1 1],
+\end{center}
+
+which states that dependencies 2, 9, and 10 are still not added strongly in any dimension and are still available to be added. We have considered the kernels having a maximum number of dependencies as 41 and hence, this adds 82 more variables in our state representation, taking the total variable count, including the current dimension, to 1 + 208 + 82 = 291. We have mixed and matched these representation variables, implementing dropouts, for example, using the number of available dependencies instead of one-hot encoding,  to find out which representation gives us the best result. A typical full representation of the state would look as shown below.
+
+Comment - add actual array \break
+\textit{array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., -1.,  0.,  0.,
+        1.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0., -1.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0., -1.,  0.,  0.,  0.,  0., -1.,  0., -1.,
+        1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1., -1.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+       -1.,  1., -1.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., -1.,  1.,
+        0.,  0.,  0.,  0.,  0., -1.,  0.,  0.,  1., -1.,  2.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
+        0.,  0.,  0.,  0.])}
+
+%\textit{0 \leq i\textsubscript{0} < n\textsubscript{i}}
+%\textit{-i\textsubscript{0} \leq 0}
+%\textit{i\textsubscript{0} - n\textsubscript{i} + 1 \leq 0}
 
 \begin{figure}[!tb]
   \centering
