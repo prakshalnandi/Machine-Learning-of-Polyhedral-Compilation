@@ -132,7 +132,14 @@ PyTorch implements a dynamic graph approach for gradient calculation, where the 
 
 \section{PolyGym}
 
-PolyGym provides an environment of Polyhedral optimizations for Reinforcement Learning, adhering to OpenAI Gym interface \cite{Gym}, which is a toolkit for solving RL problems. Suppose the actions are chosen to directly represent the transformations, such as loop fusion or tiling. In that case, the model may learn the profitable schedules only for a particular set of loops or domains. Instead, PolyGym takes a more granular approach\footnote{https://github.com/PolyGym/polygym}. It uses the existing formulation of Farkas' lemma from discrete geometry to construct the space of valid schedules. In the next step, a Markov decision process(MDP) can explore this space to find a profitable schedule, independent of the loop being optimized. Hence, this makes it a two-stage technique, the construction of schedule space and its exploration, using two different Markov Decision Processes with different states and actions. This framework, however, still lacks a training agent, although just by using this simple heuristic, PolyGym is able to find transformations that lead to a speed up of 3.39x over LLVM Or and 1.34x over best isl transformation \cite{9563041}. As shown in Figure 2, it should be noted that PolyGym does not use any agent, but an agent can use the environment defined by PolyGym for learning.
+PolyGym provides an environment of Polyhedral optimizations for Reinforcement Learning, adhering to OpenAI Gym interface \cite{Gym}, which is a toolkit for solving RL problems. Suppose the actions are chosen to directly represent the transformations, such as loop fusion or tiling. In that case, the model may learn the profitable schedules only for a particular set of loops or domains. Instead, PolyGym takes a more granular approach\footnote{https://github.com/PolyGym/polygym}. It uses the existing formulation of Farkas' lemma from discrete geometry to construct the space of valid schedules. In the next step, a Markov decision process(MDP) can explore this space to find a profitable schedule, independent of the loop being optimized. Hence, this makes it a two-stage technique, the construction of schedule space and its exploration, using two different Markov Decision Processes with different states and actions. This framework, however, still lacks a training agent, although just by using this simple heuristic, PolyGym is able to find transformations that lead to a speed up of 3.39x over LLVM Or and 1.34x over best isl transformation \cite{P1}. As shown in Figure \ref{fig:polygym}, it should be noted that PolyGym does not use any agent, but an agent can use the environment defined by PolyGym for learning.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/PolyGym.png}
+  \label{fig:polygym}  
+  \caption{Polygym workflow originally demonstrated in \cite{P1}}
+\end{figure}
 
 \section{Literature Review}
 
@@ -215,6 +222,13 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 In this representation, \textit{i\textsubscript{dim}} represents the current dimension, and \textit{i\textsubscript{dep}} represents the current dependency pointer. \textit{n\textsubscript{d}} stores the number of strong dependencies added in current dimensions, and \textit{n\textsubscript{a}}
 represents the number of total available dependencies across all dimensions which are yet to be added strongly.
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Construction.png}
+  \label{fig:construction}  
+  \caption{Construction Phase State Representation as \textit{(i_{dim};\hspace{2}i_{dep};\hspace{2}n_d;\hspace{2}n_a)}.}
+\end{figure}
+
 Using this representation, the agent could learn if it trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup achieved during the training. While this shows that the agent's implementation is correct, more was needed to solve the problem of generalization. While testing this agent on another kernel, the performance was significantly poor.
 
 A critical piece of information we missed was the actual parameters associated with the dependency. A dependency statement can be defined as shown below.
@@ -283,6 +297,13 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 \label{eq:CONST_SPC}
 \end{equation}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Exploration.png}
+  \label{fig:exploration}  
+  \caption{Exploration Phase limited to one dimension and two rays for understanding}
+\end{figure}
+
 \begin{figure}[!tb]
   \centering
   \subfloat[Original Loop in C.]{\includegraphics[width=0.5\textwidth]{Original_Loop.png}\label{fig:Original_Loop}}
@@ -304,7 +325,7 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 
 \section{Epsilon-Greedy Approach}
 
-During the training, the agent has two choices. Either keep choosing the new actions, which is called Exploration or choose the actions giving the most reward, termed Exploitation. Exploration is good for the long run as the agent gains some new knowledge. While exploitation helps gain immediate reward, even though it might be sub-optimal. The agent can follow only one approach at a time, presenting an exploration-exploitation trade-off. In the implementation, a parameter \textit{epsilon} was kept to introduce the randomness in the training. We choose a random number from 0 to 1, if the number is less than \textit{epsilon}, then the agent explores, or else it exploits.
+During the training, the agent has two choices. Either keep choosing the new actions, which is called Exploration or choose the actions giving the most reward, termed Exploitation. Exploration is good for the long run as the agent gains some new knowledge. While exploitation helps gain immediate reward, even though it might be sub-optimal. The agent can follow only one approach at a time, presenting an exploration-exploitation trade-off. In the implementation, a parameter \textit{epsilon} was kept to introduce the randomness in the training. We choose a random number from 0 to 1, if the number is less than \textit{epsilon}, then the agent explores, or else it exploits, Figure \ref{fig:randomness}.
 
 \begin{figure}[htbp]
   \centering
@@ -325,10 +346,27 @@ Initially, the agent has little information, which will be a good approach to ex
 where t is the current iteration, and T is the total number of iterations for the training.
 
 \section{Experience Replay Buffer}
+Instead of learning as soon as we take a step in the environment, storing these transitions in a memory buffer and using them later on for learning will be useful. This is known as learning based on Experience Replay in Reinforcement learning. This approach has many advantages. Firstly, we need a good way to distribute the reward to all the state-actions pairs visited during the scheduled construction and exploration. However, we can do this only after we know the speed-up of the new schedule generated. Hence, if we have the transition history, we update the values for those state-action pairs later on. Secondly, if we are planning to train on each kernel n times, we can pick one kernel train on that kernel for n times, and move to the next kernel. However, this approach might introduce some correlation in the learning. If we store the transition history, we can randomly select the samples to break the correlation.
+
+The base unit of this replay buffer is a transition, which can be described as per Equation \ref{eq:TRANSITION}
+
+\begin{equation}
+T = (s,\hspace{2} a,\hspace{2} r,\hspace{2} s,\hspace{2} d),
+\label{eq:TRANSITION}
+\end{equation}
+
+where \textit{T} is Transition, \textit{s} is the current state in which the action is taken, \textit{a} is the action performed, \textit{r} is the reward received while performing action \textit{a} in states \textit{s}, \textit{s'} is the next state in the transition and \textit{d} is the binary value to indicate if the transition is completed, which is if the schedule is generated.
 
 \section{Leave-one-out Evaluation}
 
-We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. On the other side, our testing set should be large enough to measure our agent's performance accurately. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets to train the agent on the set which was used for testing and test it on the remaining set. In general, there are more than two partitions, each time, we take a different partition for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly.
+We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. On the other side, our testing set should be large enough to measure our agent's performance accurately. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets to train the agent on the set which was used for testing and test it on the remaining set. In general, there are more than two partitions, each time, we take a different partition for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly. This method is shown in Figure \ref{fig:leave_one_out} with the help of five different kernels, however, there were more than five kernels during actual evaluation.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Leave_One_Out.png}
+  \label{fig:leave_one_out}  
+  \caption{Leave-One-Out Evaluation}
+\end{figure}
 
 \chapter{Results and Discussions}
 
