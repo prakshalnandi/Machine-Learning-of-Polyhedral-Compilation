@@ -67,7 +67,7 @@ Any acknowledgements go here.
 
 \section{Motivation}
 
-Reinforcement Learning(RL) has recently been seen as a promising approach for compiler optimization \cite{8357388}\cite{9232934}. A Reinforcement Learning agent makes the \textit{observations} within the \textit{environment}, and takes \textit{actions} to receive certain \textit{rewards}. The goal is to maximize the rewards over a period of time. On the other side, to achieve optimizations related to data locality, memory management, communication, and automatic parallelization, the space of the possible transformations available to a compiler is vast. Applying Machine Learning(ML) algorithms to find a good strategy in this space is challenging. Polyhedral Compilation is one type of compiler optimization technique applicable to a particular class of nested loops. It can explore geometric dependency properties of kernel statements in different iterations and apply transformations to improve the schedule of the loop execution. In compiler optimization, machine learning is yet to achieve the level of success in other fields such as Computer Vision or Natural Language Processing. Even though it has been an object of research for more than two decades, machine learning guided techniques are still not widely utilized in industrial compilers.
+Reinforcement Learning(RL) has recently been seen as a promising approach for compiler optimization \cite{8357388}\cite{9232934}. A Reinforcement Learning agent makes the \textit{observations} within the \textit{environment}, and takes \textit{actions} to receive certain \textit{rewards}. The goal is to maximize the rewards over a period of time. On the other side, the space of the possible transformations available to a compiler is vast to achieve optimizations related to data locality, memory management, communication, and automatic parallelization. Applying Machine Learning(ML) algorithms to find a good strategy in this space is challenging. Polyhedral Compilation is one type of compiler optimization technique applicable to a particular class of nested loops. It can explore geometric dependency properties of kernel statements in different iterations and apply transformations to improve the schedule of the loop execution. In compiler optimization, machine learning is yet to achieve the level of success in other fields such as Computer Vision or Natural Language Processing. Even though it has been an object of research for more than two decades, machine learning guided techniques are still not widely utilized in industrial compilers.
 
 
 
@@ -132,7 +132,9 @@ PyTorch implements a dynamic graph approach for gradient calculation, where the 
 
 \section{PolyGym}
 
-PolyGym provides an environment of Polyhedral optimizations for Reinforcement Learning, adhering to OpenAI Gym interface \cite{Gym}, which is a toolkit for solving RL problems. Suppose the actions are chosen to directly represent the transformations, such as loop fusion or tiling. In that case, the model may learn the profitable schedules only for a particular set of loops or domains. Instead, PolyGym takes a more granular approach\footnote{https://github.com/PolyGym/polygym}. It uses the existing formulation of Farkas' lemma from discrete geometry to construct the space of valid schedules. In the next step, a Markov decision process(MDP) can explore this space to find a profitable schedule, independent of the loop being optimized. Hence, this makes it a two-stage technique, the construction of schedule space and its exploration, using two different Markov Decision Processes with different states and actions. This framework, however, still lacks a training agent, although just by using this simple heuristic, PolyGym is able to find transformations that lead to a speed up of 3.39x over LLVM Or and 1.34x over best isl transformation \cite{P1}. As shown in Figure \ref{fig:polygym}, it should be noted that PolyGym does not use any agent, but an agent can use the environment defined by PolyGym for learning.
+The geometric properties of the dependencies between two statements during loop iteration execution can be defined in the form of space of constraints. Exploration of this space offers an opportunity to apply semantics-preserving transformations to improve the performance of the loop. This exploration mainly has two methods: problem-specific heuristics or iterative meta-heuristic. The latter approach yields better results but is time-consuming and difficult to utilise in practical application. Reinforcement Learning presents a middle way among these approaches. However, all the challenges applicable to polyhedral compilation still exist in the Reinforcement Learning problem. For example, if the actions in an RL environment are related to direct transformations, these transformations may not be applicable to all the loops in practice. Moreover, it is not straightforward to generalise the problem and the learning of the agent.
+
+Polygym presents an RL environment for Polyhedral Optimization, where the transformations are applied using actions selected through a loop-agnostic Markov Decision Process, adhering to adhering to OpenAI Gym interface \cite{Gym}. First, it constructs a search space of the transformed schedules applying Farkas' lemma to generate a set of linear inequalities from the affine functions representing the schedule. The next step navigates this search space to find the highly profitable schedule using the generators defined by chernikova's algorithm \ref{fig:polygym}. While the original implementation of Polygym only used simple heuristics to construct and explore the schedule space, it exposes the problem to modern Reinforcement Learning methods \footnote{https://github.com/PolyGym/polygym}. Using this approach, Polygym could find profitable schedules with overall 3.39x speedup over the schedules found using o3-clang12 and 1.34x speedup over \textit{isl-polly12}. However, Polygym neither uses any agent nor implements any learning behaviour. Moreover, this heuristics is specific to the certain loop under testing and not generalised. This thesis will demonstrate the results of using agent-based RL methods to generalise this problem and comparison of its performance with the actual Polygym implementation.
 
 \begin{figure}[htbp]
   \centering
@@ -323,6 +325,13 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 
 \section{Evaluation Setup}
 
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/PolyGymRlStack.png}
+  \label{fig:stack}  
+  \caption{PolyGymRL Stack}
+\end{figure}
+
 \section{Epsilon-Greedy Approach}
 
 During the training, the agent has two choices. Either keep choosing the new actions, which is called Exploration or choose the actions giving the most reward, termed Exploitation. Exploration is good for the long run as the agent gains some new knowledge. While exploitation helps gain immediate reward, even though it might be sub-optimal. The agent can follow only one approach at a time, presenting an exploration-exploitation trade-off. In the implementation, a parameter \textit{epsilon} was kept to introduce the randomness in the training. We choose a random number from 0 to 1, if the number is less than \textit{epsilon}, then the agent explores, or else it exploits, Figure \ref{fig:randomness}.
@@ -369,12 +378,31 @@ We have conflicting priorities while distributing training and testing sets. Our
 \end{figure}
 
 \chapter{Results and Discussions}
-
+Construction time
+Example of loops which performed well ---
+Loops which did not perform very well , possible reasons for below average performance --- 
+Chart for speedup -- 
+chart for number of schedules ---
+chart with hardcode xploration vs learnt exploration ---
 \chapter{Conclusions}
+
+Able to generalize the problem -- 
+Using different agents for construction and exploration --
+For some loops, very high performance shows the possibilities of RL for polyhedral Compilation --- 
+Other advanced methods or combination of methods, trying out different state representation may help find increase in performance --- 
 
 \section{Unresolved Issues}
 
+More RL Methods
+Combination of GA and RL
+Scalability
+Reward Shaping
+
 \section{Future Work}
+Deep Reinforcement learning Method
+Hyperparameters search
+Loop Construction Performance by performance programming an HPC
+Outside Polybench Loops
 
 \bibliographystyle{plain}
 \bibliography{MLPC}
