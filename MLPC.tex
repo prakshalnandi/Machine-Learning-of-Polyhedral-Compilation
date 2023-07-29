@@ -20,11 +20,15 @@
 % Include any packages you need below, but don't include any that change the page
 % layout or style of the dissertation. By including the ugcheck package above,
 % you should catch most accidental changes of page layout though.
-\documentclass{article}
+%\documentclass{article}
 \usepackage{mathtools}
 \usepackage{microtype} % recommended, but you can remove if it causes problems
 \usepackage{graphicx}
 \usepackage{subfig}
+\usepackage{algorithm}
+\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\usepackage{algpseudocode}
+
 
 \begin{document}
 \begin{preliminary}
@@ -36,9 +40,16 @@
 \date{\today}
 
 \abstract{
+
+Abstract-1
+
 In most compute-intensive applications, a significant amount of time is spent on the execution of the loops. Compilers like clang offer many optimisation options such as loop tiling, unrolling, vectorization or parallel processing. Most optimizations are still particular to the loop they are trying to transform and require specific knowledge in this domain. If the loops follow a specific structure, it is possible to change the execution order of the loop statements to make the program run faster. But finding a profitable schedule at the compile time is a complex task, as there are lots of constraints and dependencies involved.
 
 Fortunately, using the OpenAI Gym interface, PolyGym \cite{P1} has converted this problem into an environment of optimizations for Reinforcement Learning algorithms. The loops are converted into polyhedral representation, upon which different transformations can be applied. This thesis explores the feasibility of using a Reinforcement Learning agent to find a profitable schedule. First, we generate valid schedules using agent-chosen actions transforming the polyhedral model. Secondly, we are doing a search in the space of the possible schedule to find the optimal solution using a different RL agent. Finally, with the help of some experiments, we show how different RL algorithms perform, starting from basic Q-Learning algorithm to more advanced and popular deep reinforcement learning algorithms.
+
+Abstract-2 
+
+In most compute-intensive applications, a considerable amount is spent in loops. Compilers like clang offer many optimisations, such as tiling, fission, fusion, and unwinding, to increase the execution performance of these loops. One of the ways to optimise loop performance is through polyhedral compilation strategies, which apply to a specific class of loops. However, this requires domain-specific knowledge to design suitable heuristics, which is also difficult to generalise. In this thesis, we explore the possibilities of using Reinforcement Learning algorithms to apply semantics-preserving transformations to optimise the schedule of the loop execution. As a background to this research, PolyGym[reference] has already presented Polyhedral Compilation as an environment of Reinforcement Learning. We continue this investigation by implementing a Q-learning agent first to construct the schedule space and then to explore the highly effective schedule strategy from that space. We demonstrate that we can generalise the learning on PolyBench kernels and achieve an average 2.03x speedup compared to clang -O3 flag For a few kernels like \textit{trmm}, we even achieved better performance than PolyGym.
 }
 
 \maketitle
@@ -138,9 +149,9 @@ Polygym presents an RL environment for Polyhedral Optimization, where the transf
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/PolyGym.png}
-  \label{fig:polygym}  
+  \includegraphics[width=\textwidth]{Images/PolyGym.png}    
   \caption{Polygym workflow originally demonstrated in \cite{P1}}
+  \label{fig:polygym}
 \end{figure}
 
 \section{Literature Review}
@@ -201,6 +212,36 @@ w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
 
 \section{Deep Q-Learning}
 
+\section{Methods}
+
+\begin{algorithm}[H]
+\caption{Update Agent Weights2}\label{alg:agent}
+\SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
+\SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{observation state s, chosen action a, reward received r, done flag d, learning rate \alpha, discount factor \hspace{2} \gamma}
+\Output{updated weights w}
+
+\For(\tcp*[f]{Initialize Q-Values}){each action a in action space A}
+{
+    
+    \For{each feature i in state S}
+    {
+        Q(s,a) \gets Q(s,a) + w_i^a * f_i$
+    }
+}
+\State{Find action \(a_{max}}\) with maximum Q-value}
+\State{target\_value \gets reward + \gamma * (1 - d) * Q(s, a_{max})}
+
+\For{each feature i in state s}
+{
+    w_i^a \gets w_i^a + \alpha * (target\_value - Q(s,a)) * f_i$
+    \tcp*[f]{Update Weights}
+}
+\end{algorithm}
+
+
+
 \section{Agent Representation}
 
 For the problems such as this, it is essential that the representation of the state is such that the agent is able to learn. We define two different agents here, one for the construction phase and one for the exploration. This is because the learning of the agent and the representation is completely different in both phases.
@@ -226,9 +267,9 @@ represents the number of total available dependencies across all dimensions whic
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Construction.png}
-  \label{fig:construction}  
+  \includegraphics[width=\textwidth]{Images/Construction.png}    
   \caption{Construction Phase State Representation as \textit{(i_{dim};\hspace{2}i_{dep};\hspace{2}n_d;\hspace{2}n_a)}.}
+  \label{fig:construction}
 \end{figure}
 
 Using this representation, the agent could learn if it trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup achieved during the training. While this shows that the agent's implementation is correct, more was needed to solve the problem of generalization. While testing this agent on another kernel, the performance was significantly poor.
@@ -301,9 +342,9 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Exploration.png}
-  \label{fig:exploration}  
+  \includegraphics[width=\textwidth]{Images/Exploration.png}    
   \caption{Exploration Phase limited to one dimension and two rays for understanding}
+  \label{fig:exploration}
 \end{figure}
 
 \begin{figure}[!tb]
@@ -325,11 +366,13 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 
 \section{Evaluation Setup}
 
-\begin{figure}[htbp]
+PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is a tool to iteratively optimize the program's schedule to increase its performance on multi-core systems. Polyite uses a patched version of Polly to extract Scop and generate the transformed code from the schedule. Polly is built on top of LLVM. Hence, as a first step of the set-up, LLVM[reference to be added], clang and Polly were cloned and built using cmake. The next step was building isl[reference to be added] and its binding for Scala 2.11. A wrapper is used to make these isl Scala binding available to Polyite. Next, two libraries Barvinok [reference] and Chernikova[reference] were set up. The former calculates the polyhedron's volume, while the latter generates the generator representation from linear constraints. As there is no build tool supplied with Polyite, all the required libraries, such as Apache Commons Lang 3.4 [reference], Apache Commons Math [reference] 3.6.1, OpenMPI 2.1.1, scala-parser-combinators 2.11-1.0.3 were added as dependencies to Scala IDE[reference] to build the tool. Finally, PolyBench version 4.1 was downloaded and unpacked inside Polyite root location. The hierarchy of the stack is shown in Figure \ref{fig::stack}.
+
+\begin{figure}[htbp]  
   \centering
-  \includegraphics[width=\textwidth]{Images/PolyGymRlStack.png}
-  \label{fig:stack}  
+  \includegraphics[width=\textwidth]{Images/PolyGymRlStack.png}    
   \caption{PolyGymRL Stack}
+  \label{fig::stack}
 \end{figure}
 
 \section{Epsilon-Greedy Approach}
@@ -338,9 +381,9 @@ During the training, the agent has two choices. Either keep choosing the new act
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Randomness.png}
-  \label{fig:randomness}  
+  \includegraphics[width=\textwidth]{Images/Randomness.png}    
   \caption{Exploration vs Exploitation}
+  \label{fig:randomness}
 \end{figure}
 
 Initially, the agent has little information, which will be a good approach to exploring more. Hence, the value of \textit{epsilon} should be higher. As the training progresses, this value should be reduced so that the agent does not spend time on actions which will not give us good rewards. However, the value should be decreased periodically. Otherwise, more exploitation in the initial phase can cause the agent to get stuck in sub-optimal space. We are reducing the \textit{epsilon} value based on the iteration of the training as described in Equation \ref{eq:RANDOMNESS}. Notably, if {$\epsilon$} value is zero, the agent always exploits the knowledge it has. On the other side, if the {$\epsilon$} value is one, the agent will always choose random actions.
@@ -355,7 +398,7 @@ Initially, the agent has little information, which will be a good approach to ex
 where t is the current iteration, and T is the total number of iterations for the training.
 
 \section{Experience Replay Buffer}
-Instead of learning as soon as we take a step in the environment, storing these transitions in a memory buffer and using them later on for learning will be useful. This is known as learning based on Experience Replay in Reinforcement learning. This approach has many advantages. Firstly, we need a good way to distribute the reward to all the state-actions pairs visited during the scheduled construction and exploration. However, we can do this only after we know the speed-up of the new schedule generated. Hence, if we have the transition history, we update the values for those state-action pairs later on. Secondly, if we are planning to train on each kernel n times, we can pick one kernel train on that kernel for n times, and move to the next kernel. However, this approach might introduce some correlation in the learning. If we store the transition history, we can randomly select the samples to break the correlation.
+Instead of learning as soon as we take a step in the environment, storing these transitions in a memory buffer and using them later on for learning will be useful. This is known as learning based on Experience Replay in Reinforcement learning. This approach has many advantages. Firstly, we need a good way to distribute the reward to all the state-actions pairs visited during the scheduled construction and exploration. However, we can do this only after we know the speed-up of the new schedule generated. Hence, if we have the transition history, we update the values for those state-action pairs later on. Secondly, if we plan to train on each kernel n times, we can pick one kernel train on that kernel for n times, and move to the next kernel. However, this approach might introduce some correlation in the learning. If we store the transition history, we can randomly select the samples to break the correlation.
 
 The base unit of this replay buffer is a transition, which can be described as per Equation \ref{eq:TRANSITION}
 
@@ -372,9 +415,9 @@ We have conflicting priorities while distributing training and testing sets. Our
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Leave_One_Out.png}
-  \label{fig:leave_one_out}  
+  \includegraphics[width=\textwidth]{Images/Leave_One_Out.png}   
   \caption{Leave-One-Out Evaluation}
+  \label{fig:leave_one_out} 
 \end{figure}
 
 \chapter{Results and Discussions}
@@ -383,26 +426,26 @@ Example of loops which performed well ---
 Loops which did not perform very well , possible reasons for below average performance --- 
 Chart for speedup -- 
 chart for number of schedules ---
-chart with hardcode xploration vs learnt exploration ---
+chart with hardcode exploration vs learnt exploration ---
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Results_Basic.png}    
+  \caption{Leave-One-Out Evaluation}
+  \label{fig:result_basic}
+\end{figure}
+
 \chapter{Conclusions}
 
-Able to generalize the problem -- 
-Using different agents for construction and exploration --
-For some loops, very high performance shows the possibilities of RL for polyhedral Compilation --- 
-Other advanced methods or combination of methods, trying out different state representation may help find increase in performance --- 
+There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. We are able to overcome both these challenges by successfully implementing RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
 
-\section{Unresolved Issues}
+\section{Unresolved Issues and Future Work}
 
-More RL Methods
-Combination of GA and RL
-Scalability
-Reward Shaping
+A few unresolved issues need to be addressed in the future. While a few loops like \textit{covariance} achieved a speedup of more than 8, we did not witness simmilar results with all the loops. In fact, for a few loops like \textit{atax}, the speedup was relatively less compared to clang -O3 flag. Other advanced Reinforcement Learning algorithms, especially deep reinforcement learning algorithms such as DQN [reference] and Deep Deterministic Policy Gradients (DDPG) [Reference] can be implemented and tested by keeping this implementation as a reference. An extensive hyper parameters scan can be performed related to learning rate, gamma, epsilon and size and type of the neural networks, output functions in the case of deep learning. PolyIte already uses Genetic Algorithm for random exploration. Similarly, in this problem, a combination of Reinforcement Learning algorithms and Genetic Algorithms can be interesting. We have already tried a variety of state representations to facilitate learning, and more experiments can be continued in this direction. The reward shaping is relatively simple by distributing the speedup to all the action-state pairs. There can be a few enhancements to how these rewards are distributed. For example, the agent can be penalised when the constructed schedule is incomplete, or results in an execution error, and a negative reward can be assigned to the actions undertaken.
 
-\section{Future Work}
-Deep Reinforcement learning Method
-Hyperparameters search
-Loop Construction Performance by performance programming an HPC
-Outside Polybench Loops
+There were a few kernels like \textit{durbin}, which involve a very high search space construction time crossing the timeout barrier; hence we had to leave them out of our research. Recent advancements in high performance computing and performance programming can make this construction faster and improve scalability. There can be simple changes reducing the memory and storage requirements. For example, a single RL agent can carry out both construction and exploration activities instead of two. However, some limitations related to time taken are the characteristics of the polyhedral compilation itself and have little to do with our research. Currently, the research is limited to the kernels provided by PolyBench, in future, we are optimistic that this experiment can be carried out on other real-world kernel scenarios.
+
+
 
 \bibliographystyle{plain}
 \bibliography{MLPC}
