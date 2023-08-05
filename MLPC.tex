@@ -26,7 +26,7 @@
 \usepackage{graphicx}
 \usepackage{subfig}
 \usepackage{algorithm}
-\usepackage[lined,boxed,commentsnumbered]{algorithm2e}
+\usepackage[lined,boxed,linesnumbered]{algorithm2e}
 \usepackage{algpseudocode}
 
 
@@ -215,7 +215,7 @@ w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
 \section{Methods}
 
 \begin{algorithm}[H]
-\caption{Update Agent Weights2}\label{alg:agent}
+\caption{Update Agent Weights}\label{alg:agent}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
@@ -240,7 +240,87 @@ w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
 }
 \end{algorithm}
 
+\begin{algorithm}[H]
+\caption{Agent Training}\label{alg:agent}
+\SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
+\SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{env, sample_name, agent_cons, agent_expl}
+\Output{reward, status, actions, isl_map, buffer_cons, buffer_expl}
 
+\State{Initialize PolyGym environment}
+\State{Initialize construction agent\_cons and exploration agent\_expl}
+
+\tcp{Training} 
+\For(\tcp*[f]{each kernel from Polybench}){each kernel to be processed except testing kernel}
+{    
+    \For(\tcp*[f]{FLAGS.stop\_at}){each iteration t out of T}
+    {
+        
+        Schedule randomness for each agent, \epsilon \gets 1.0 - min{\hspace{2}}(1.0,{\hspace{2}} t / (0.9 * T))) * {\hspace{2}}0.95
+         
+         reward, status, actions, isl\_map, memory\_cons, memory\_expl \gets \textbf{gen\_and\_bench\_random\_schedule}(env, sample\_name, agent\_cons, agent\_expl)
+         
+         speedup \gets reward\_to\_speedup(reward)
+         
+         \textbf{agent\_cons.update\_weights}(memory\_cons.states,
+                                    memory\_cons.actions,
+                                    speedup, memory\_cons.next_states),
+                                    memory\_cons.done)
+                                    
+         \textbf{agent\_expl.update\_weights}(memory\_expl.states,
+                                    memory\_expl.actions,
+                                    speedup, memory\_expl.next_states),
+                                    memory\_expl.done)
+       
+    }
+}
+\tcp{Testing}
+\State{total\_speedup \gets 0}
+
+\State{total\_instance \gets 0}
+
+\For(\tcp*[f]{FLAGS.stop\_at}){each iteration t out of T}
+{
+        reward, status, actions, isl\_map, memory\_cons, memory\_expl \gets \textbf{gen\_and\_bench\_random\_schedule}(env, sample\_name, agent\_cons, agent\_expl)
+        
+        speedup \gets reward\_to\_speedup(reward)
+        
+        total\_speedup \gets total\_speedup + speedup
+        
+        total\_instance \gets total\_instance + 1$
+}
+
+Average\_Speedup \gets total\_speedup / total\_instance
+
+\end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Generate and Bench Schedule}\label{alg:agent}
+\SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
+\SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{env, sample_name, agent\_cons, agent\_expl}
+\Output{reward, status, actions, isl_map, buffer\_cons, buffer\_expl}
+
+
+\State{Reset environment for the chosen sample}
+\State{Initialize buffer memories for construction and exploration phase}
+
+\While(\tcp*[f]{Until schedule is generated}){not done}
+{
+    
+    \If{Construction\_phase}{
+        \State{Choose Construction Action using Agent 1}
+        }
+    \Else{
+        \State{Choose Exploration Action using Agent 2}
+        }
+    \State{Take step in environment and receive reward and next state}
+    \State{Add state, action, reward and n\_state to the respective buffer memory}    
+}
+
+\end{algorithm}
 
 \section{Agent Representation}
 
