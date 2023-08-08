@@ -19,7 +19,7 @@
 
 % Include any packages you need below, but don't include any that change the page
 % layout or style of the dissertation. By including the ugcheck package above,
-% you should catch most accidental changes of page layout though.
+% you should catch most accident-al changes of page layout though.
 %\documentclass{article}
 \usepackage{mathtools}
 \usepackage{microtype} % recommended, but you can remove if it causes problems
@@ -41,15 +41,8 @@
 
 \abstract{
 
-Abstract-1
-
-In most compute-intensive applications, a significant amount of time is spent on the execution of the loops. Compilers like clang offer many optimisation options such as loop tiling, unrolling, vectorization or parallel processing. Most optimizations are still particular to the loop they are trying to transform and require specific knowledge in this domain. If the loops follow a specific structure, it is possible to change the execution order of the loop statements to make the program run faster. But finding a profitable schedule at the compile time is a complex task, as there are lots of constraints and dependencies involved.
-
-Fortunately, using the OpenAI Gym interface, PolyGym \cite{P1} has converted this problem into an environment of optimizations for Reinforcement Learning algorithms. The loops are converted into polyhedral representation, upon which different transformations can be applied. This thesis explores the feasibility of using a Reinforcement Learning agent to find a profitable schedule. First, we generate valid schedules using agent-chosen actions transforming the polyhedral model. Secondly, we are doing a search in the space of the possible schedule to find the optimal solution using a different RL agent. Finally, with the help of some experiments, we show how different RL algorithms perform, starting from basic Q-Learning algorithm to more advanced and popular deep reinforcement learning algorithms.
-
-Abstract-2 
-
-In most compute-intensive applications, a considerable amount is spent in loops. Compilers like clang offer many optimisations, such as tiling, fission, fusion, and unwinding, to increase the execution performance of these loops. One of the ways to optimise loop performance is through polyhedral compilation strategies, which apply to a specific class of loops. However, this requires domain-specific knowledge to design suitable heuristics, which is also difficult to generalise. In this thesis, we explore the possibilities of using Reinforcement Learning algorithms to apply semantics-preserving transformations to optimise the schedule of the loop execution. As a background to this research, PolyGym[reference] has already presented Polyhedral Compilation as an environment of Reinforcement Learning. We continue this investigation by implementing a Q-learning agent first to construct the schedule space and then to explore the highly effective schedule strategy from that space. We demonstrate that we can generalise the learning on PolyBench kernels and achieve an average 2.03x speedup compared to clang -O3 flag For a few kernels like \textit{trmm}, we even achieved better performance than PolyGym.
+In most compute-intensive applications, a considerable amount is spent in loops. Compilers like clang offer many optimisations, such as tiling, fission, fusion, and unwinding, to increase the execution performance of these loops. One of the ways to optimise loop performance is through polyhedral compilation strategies, which apply to a specific class of loops. If the loops follow a specific structure, it is possible to change the execution order of the loop statements to make the program run faster. However, this requires domain-specific knowledge to design suitable heuristics, which is also difficult to generalise. \par
+In this thesis, we explore the possibilities of using Reinforcement Learning algorithms to apply semantics-preserving transformations to optimise the schedule of the loop execution. As a background to this research, PolyGym[reference] has already presented Polyhedral Compilation as an environment of Reinforcement Learning. We continue this investigation by implementing Q-learning agents, first to construct the number of valid schedules and then to explore the schedule space to find a highly effective schedule using RL algorithms. We demonstrate that we can generalise the learning on PolyBench kernels and achieve an average 2.26x speedup compared to clang -O3 flag.
 }
 
 \maketitle
@@ -156,7 +149,7 @@ Polygym presents an RL environment for Polyhedral Optimization, where the transf
 
 \section{Literature Review}
 
-Previous surveys have explored the relationship between Machine Learning and Compiler Optimizations \cite{8357388}\cite{9232934}. Several studies have also begun to examine how RL can be applied to the field of compiler optimizations. In 2014, Emani \textit{et al.} demonstrated a new approach for dynamically mapping parallel programs to varying system resources \cite{10.1007}. They used Markov Decision Process for online thread scheduling and an offline model trained based on the system environment and the structure of the code. Similar to PolyGym, CompilerGym extends the Gym interface to provide a reinforcement learning environment to researchers for compiler optimizations \cite{CompilerGym}. A recent study by Mammadli \textit{et al.} presented an excellent example of using Deep Reinforcement Learning for finding effective sequences of phase-ordering, which is a long-standing problem for compiler generators \cite{static.neural}. However, finding profitable loop transformations is a much more fine-drawn problem than finding the optimum number of threads or distributing the work on different cores. In an investigation related to current Single Instruction, Multiple Data (SIMD) architectures, Neurovectorizer \cite{NeuroVectorizer} addresses the challenge to find a good vectorization strategy with the help of Deep Reinforcement Learning. MLGO \cite{10.48550} attempted to leverage Reinforcement Learning and Evolutionary Algorithms for making decisions about function in-lining for improving code size. However, the evaluation for the code size could be less challenging than the evaluation of the heuristics focusing on the program's execution speed due to the uncertainty involved in the time taken during each execution.
+Previous surveys have explored the relationship between Machine Learning and Compiler Optimizations \cite{8357388}\cite{9232934}. Several studies have also begun to examine how RL can be applied to the field of compiler optimizations. In 2014, Emani \textit{et al.} demonstrated a new approach for dynamically mapping parallel programs to varying system resources \cite{10.1007}. They used Markov Decision Process for online thread scheduling and an offline model trained based on the system environment and the structure of the code. Similar to PolyGym, CompilerGym extends the Gym interface to provide a reinforcement learning environment to researchers for compiler optimizations \cite{CompilerGym}. A recent study by Mammadli \textit{et al.} presented an excellent example of using Deep Reinforcement Learning for finding effective sequences of phase-ordering, which is a long-standing problem for compiler generators \cite{static.neural}. However, finding profitable loop transformations is a much more fine-drawn problem than finding the optimum number of threads or distributing the work on different cores. In an investigation related to current Single Instruction, Multiple Data (SIMD) architectures, Neurovectorizer \cite{NeuroVectorizer} addresses the challenge of finding a good vectorization strategy with the help of Deep Reinforcement Learning. MLGO \cite{10.48550} attempted to leverage Reinforcement Learning and Evolutionary Algorithms for making decisions about function in-lining for improving code size. However, the evaluation for the code size could be less challenging than the evaluation of the heuristics focusing on the program's execution speed due to the uncertainty involved in the time taken during each execution.
 
 All these methods, however, did not consider polyhedral optimizations. In 1993, Feautrier presented the theoretical basis of the polyhedral formulation for single and multidimensional schedules \cite{single}\cite{multi}. After more than twenty years, Pouchet \textit{et al.} proposed an iterative optimization method for systematic exploration of the schedule search space \cite{it_Single}\cite{it_multi}. Building on top of these methods, Ganser \textit{et al.} demonstrated improvements in optimization with the use of genetic algorithms in 2017 \cite{10.1145/3109482}. One year later, they showed a reduction in benchmarking efforts by using surrogate performance models, where they trained the models based on the program transformation evaluated in the previous iterative optimizations, at the cost of 15\% degradation in speed-up \cite{10.1145/3291773}. This set of methods followed the iterative approach with benchmarking, making them time-consuming. In contrast, methods such as isl\cite{isl} and Pluto\cite{Bondhugula07pluto:a} generated the models directly to find a good compilation strategy in less time. However, this approach has certain limitations. The optimization performed is still dependent on the type of loop being analyzed, and its performance can not beat the time taking iterative methods. Hence, the proposed research with Reinforcement Learning fits very well between these two approaches.
 
@@ -189,7 +182,7 @@ Q(s,a) = r(s,a) + {\gamma} max_{a'\in A} Q(s',a')
 \label{eq:DQN}
 \end{equation}
 
-where \(y_{i} = E_{s'\sim\epsilon}[r+\gamma\max\limits_{{a'}}Q(s', a'; \theta_{i-1})|s, a]]\) is the target for iteration i. \(\rho(s,a)\) is the probablity distribution over states s and actions a. \(\gamma\) is the discount factor, r is the reward, and \(Q(s,a;\theta)\) is the function approximator to estimate the action-value function \cite{DBLP:journals/corr/MnihKSGAWR13}.
+where \(y_{i} = E_{s'\sim\epsilon}[r+\gamma\max\limits_{{a'}}Q(s', a'; \theta_{i-1})|s, a]]\) is the target for iteration i. \(\rho(s,a)\) is the probability distribution over states s and actions a. \(\gamma\) is the discount factor, r is the reward, and \(Q(s,a;\theta)\) is the function approximator to estimate the action-value function \cite{DBLP:journals/corr/MnihKSGAWR13}.
 
 \section{Linear Function Approximation}
 
@@ -212,41 +205,38 @@ w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
 
 \section{Deep Q-Learning}
 
+(improve this) The value of a state can be defined as the expectation of the maximum reward which can be gained from that state, considering all the actions that can be taken in that state. To select the optimal actions, we will need to determine the values of each action and select the one with the best possible result. In a way, the value of a state corresponds to the value of the action we can take from this state, giving us the maximum possible outcome.
+
+ The state-action value can be represented as mentioned in Equation \ref{eq:SAQV} (change this),
+
+\begin{equation}
+Q(s,a) = r(s,a) + {\gamma} max_{a'\in A} Q(s',a')
+\label{eq:SAQV}
+\end{equation}
+ 
+ A Q-Network can be trained by minimising the loss function at each iteration as shown in Equation \ref{eq:DQN} (change this),
+
+\begin{equation} L_{i}(\theta _{i}) = E_{s,a\sim\rho(\cdot)}[(y_{i} - Q(s,a;\theta _{i}))^2]
+\label{eq:DQN}
+\end{equation}
+
+where \(y_{i} = E_{s'\sim\epsilon}[r+\gamma\max\limits_{{a'}}Q(s', a'; \theta_{i-1})|s, a]]\) is the target for iteration i. \(\rho(s,a)\) is the probability distribution over states s and actions a. \(\gamma\) is the discount factor, r is the reward, and \(Q(s,a;\theta)\) is the function approximator to estimate the action-value function \cite{DBLP:journals/corr/MnihKSGAWR13}.
+
 \section{Methods}
 
+One of the most important aspects of this project is the training of the agents as described in Algorithm \ref{alg:agent_training}. Firstly, the environment and the agents for the construction and exploration are initialised. During the agent initialization, we provide values such as $\alpha$, $\gamma$, $\epsilon$ and the number of weights. There will be a few additional parameters depending on whether it is a basic Q-Learning, Q-Learning with approximation or Deep Q-Learning. For example, we will need to provide the number of weights if the Q-values are approximated. For a DQN agent, parameters like target update frequency and size of the network need to be provided. Once the initialization is completed, the agents are trained in two parts by running each kernel selected for training for the iterations defined by variable \textit{FLAGS.stop\_at} at the start. In the first part, as described in Algorithm \ref{alg:generate_bench}, we generate a schedule and benchmark it, recording the states, actions, and rewards encountered during the process. Once the schedule is generated and executed, we update the weights associated with the actions for different features as shown in Algorithm \ref{alg:weights_update}. If we work with a tabular Q-Learning algorithm, we update the Q-table associated with the state-action pairs instead of the weights. Once the training is over, we test the agent on a new kernel for the same number of iterations defined by \textit{FLAGS.stop\_at}, generating a schedule by choosing the actions decided by the trained agents. We take the average of the speedup achieved during the evaluation.
+
+While generating and executing the schedule as per Algorithm \ref{alg:generate_bench}, firstly the environment is rest for the sample being run. The buffer memories are initialised to record the transactions of the generation process. We choose an action using the agent by providing the current observation details and taking a step in the environment. We repeat the step until the schedule is constructed for the construction phase, i.e. when all dependencies are selected. For the exploration phase, we repeat this until the schedule is selected, i.e. all the coefficients are selected and the points are generated for each polytopes.  We calculate the reward from the speedup achieved during the execution of the schedule to use it to update the weights or Q-table as described in Algorithm \ref{alg:weights_update}. Thus, The reward is sparse, which is calculated only at the end of schedule execution, and distributed to all the state action pairs from the transaction record. 
+
+
+
 \begin{algorithm}[H]
-\caption{Update Agent Weights}\label{alg:agent}
+\caption{RL Agent Training and Evaluation}\label{alg:agent_training}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{observation state s, chosen action a, reward received r, done flag d, learning rate \alpha, discount factor \hspace{2} \gamma}
-\Output{updated weights w}
-
-\For(\tcp*[f]{Initialize Q-Values}){each action a in action space A}
-{
-    
-    \For{each feature i in state S}
-    {
-        Q(s,a) \gets Q(s,a) + w_i^a * f_i$
-    }
-}
-\State{Find action \(a_{max}}\) with maximum Q-value}
-\State{target\_value \gets reward + \gamma * (1 - d) * Q(s, a_{max})}
-
-\For{each feature i in state s}
-{
-    w_i^a \gets w_i^a + \alpha * (target\_value - Q(s,a)) * f_i$
-    \tcp*[f]{Update Weights}
-}
-\end{algorithm}
-
-\begin{algorithm}[H]
-\caption{Agent Training}\label{alg:agent}
-\SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
-\SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
-\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{env, sample_name, agent_cons, agent_expl}
-\Output{reward, status, actions, isl_map, buffer_cons, buffer_expl}
+\Input{env, sample\_name, agent\_cons, agent\_expl}
+\Output{reward, status, actions, isl\_map, buffer\_cons, buffer\_expl}
 
 \State{Initialize PolyGym environment}
 \State{Initialize construction agent\_cons and exploration agent\_expl}
@@ -265,12 +255,12 @@ w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
          
          \textbf{agent\_cons.update\_weights}(memory\_cons.states,
                                     memory\_cons.actions,
-                                    speedup, memory\_cons.next_states),
+                                    speedup, memory\_cons.next\_states,
                                     memory\_cons.done)
                                     
          \textbf{agent\_expl.update\_weights}(memory\_expl.states,
                                     memory\_expl.actions,
-                                    speedup, memory\_expl.next_states),
+                                    speedup, memory\_expl.next\_states,
                                     memory\_expl.done)
        
     }
@@ -296,12 +286,12 @@ Average\_Speedup \gets total\_speedup / total\_instance
 \end{algorithm}
 
 \begin{algorithm}[H]
-\caption{Generate and Bench Schedule}\label{alg:agent}
+\caption{Generate and Bench Schedule}\label{alg:generate_bench}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{env, sample_name, agent\_cons, agent\_expl}
-\Output{reward, status, actions, isl_map, buffer\_cons, buffer\_expl}
+\Input{env, sample\_name, agent\_cons, agent\_expl}
+\Output{reward, status, actions, isl\_map, buffer\_cons, buffer\_expl}
 
 
 \State{Reset environment for the chosen sample}
@@ -321,6 +311,34 @@ Average\_Speedup \gets total\_speedup / total\_instance
 }
 
 \end{algorithm}
+
+\begin{algorithm}[H]
+\caption{Update Agent Weights}\label{alg:weights_update}
+\SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
+\SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
+\SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{observation state s, chosen action a, reward received r, done flag d, learning rate \alpha, discount factor \hspace{2} \gamma}
+\Output{updated weights w}
+
+\For(\tcp*[f]{Initialize Q-Values}){each action a in action space A}
+{
+    
+    \For{each feature i in state S}
+    {
+        Q(s,a) \gets Q(s,a) + w_i^a * f_i$
+    }
+}
+\State{Find action \(a_{max}}\) with maximum Q-value}
+\State{target\_value \gets reward + \gamma * (1 - d) * Q(s, a_{max})}
+
+\For{each feature i in state s}
+{
+    w_i^a \gets w_i^a + \alpha * (target\_value - Q(s,a)) * f_i$
+    \tcp*[f]{Update Weights}
+}
+\end{algorithm}
+
+
 
 \section{Agent Representation}
 
@@ -352,7 +370,7 @@ represents the number of total available dependencies across all dimensions whic
   \label{fig:construction}
 \end{figure}
 
-Using this representation, the agent could learn if it trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup achieved during the training. While this shows that the agent's implementation is correct, more was needed to solve the problem of generalization. While testing this agent on another kernel, the performance was significantly poor.
+Using this representation, the agent could learn if it trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup achieved during the training. While this shows that the agent's implementation is correct, more was needed to solve the problem of generalisation. While testing this agent on another kernel, the performance was significantly poor. 
 
 A critical piece of information we missed was the actual parameters associated with the dependency. A dependency statement can be defined as shown below.
 \begin{equation}
@@ -385,7 +403,6 @@ showcasing that dependency numbers 1, 5, and 6 are added strongly in the current
 
 which states that dependencies 2, 9, and 10 are still not added strongly in any dimension and are still available to be added. We have considered the kernels having a maximum number of dependencies as 41 and hence, this adds 82 more variables in our state representation, taking the total variable count, including the current dimension, to 1 + 208 + 82 = 291. We have mixed and matched these representation variables, implementing dropouts, for example, using the number of available dependencies instead of one-hot encoding,  to find out which representation gives us the best result. A typical full representation of the state would look as shown below.
 
-Comment - add actual array \break
 \textit{array([ 0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0., -1.,  0.,  0.,
         1.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0., -1.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  1.,  0.,  0.,  0.,  0.,
@@ -398,26 +415,30 @@ Comment - add actual array \break
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
         0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,  0.,
-        0.,  0.,  0.,  0.])}
+        0.,  0.,  0.,  0. ......])}
 
 %\textit{0 \leq i\textsubscript{0} < n\textsubscript{i}}
 %\textit{-i\textsubscript{0} \leq 0}
 %\textit{i\textsubscript{0} - n\textsubscript{i} + 1 \leq 0}
 \subsection{Exploration Phase}
 
-For the exploration phase, the action space consists of three actions as defined in Equation \ref{eq:CONST_ACT},
+The exploration phase inputs the list of generators defined in the construction phase and returns a point in each dimension in the polytope of the schedule. This point is generated by selecting a coefficient and applying it to the corresponding term of the generator. Thus, in a way, the searching problem becomes the problem of finding the right integer coefficients to apply to the terms. Hence, for the exploration of schedule space, the action space consists of three actions as defined in Equation \ref{eq:CONST_ACT},
 \begin{equation}
 A_{con} = \{select\_coeff0, \hspace{1} select\_coeff1, \hspace{1} select\_coeff2\}
 \label{eq:EXP_ACT}
 \end{equation}
 
-(add more explanation for actions)
+The point generated for each dimension might look like as shown below.
+p_1 = (0,0,0,-1,0,0,0) + 2.(0,1,0,0,0,0,-1) 
+ (0,0,-1,-1,0,0,0) + 2.(-1,0,0,10,0,0,0)
 
-The states during this phase represent information of dependencies with respect to the current dimension, and it can be described as Equation \ref{eq:CONST_SPC}
+Notably, once the point is generated, we multiply it with the least common denominator(LCD) to ensure the point is in lattice polytope and we have a valid schedule.
+
+Initially, for the state representation, we included only the dimension of the polytope (taken from the set of polytopes), and the current term we are working on. However, it is important to consider that a good schedule depends on the combination of the coefficients select for the current term, other terms in the same dimension, and all the terms selected in other dimensions. Hence, just the information about the current term might not be enough. This concept is explained in Figure \ref{fig:exploration}. As shown, In the case of Ray2, whether to select coeff0 or coeff1 for a good schedule will depend on what is already selected in Ray1. We have taken just two rays for understanding, this behaviour extends to selection in other terms and dimensions as well. Hence, the state representation was extended to include the points generated until that point during the exploration,. A typical state representation for d polytopes during exploration is shown in Equation \ref{eq:EXPL_SPC}.
 
 \begin{equation}
-S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
-\label{eq:CONST_SPC}
+S_{expl} = (i_{d} ;\hspace{2} current\_term;\hspace{2} p_1,....p_d;)
+\label{eq:EXPL_SPC}
 \end{equation}
 
 \begin{figure}[htbp]
@@ -446,7 +467,7 @@ S_{con} = (i_{dim} ;\hspace{2} i_{dep};\hspace{2} n_d;\hspace{2} n_a)
 
 \section{Evaluation Setup}
 
-PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is a tool to iteratively optimize the program's schedule to increase its performance on multi-core systems. Polyite uses a patched version of Polly to extract Scop and generate the transformed code from the schedule. Polly is built on top of LLVM. Hence, as a first step of the set-up, LLVM[reference to be added], clang and Polly were cloned and built using cmake. The next step was building isl[reference to be added] and its binding for Scala 2.11. A wrapper is used to make these isl Scala binding available to Polyite. Next, two libraries Barvinok [reference] and Chernikova[reference] were set up. The former calculates the polyhedron's volume, while the latter generates the generator representation from linear constraints. As there is no build tool supplied with Polyite, all the required libraries, such as Apache Commons Lang 3.4 [reference], Apache Commons Math [reference] 3.6.1, OpenMPI 2.1.1, scala-parser-combinators 2.11-1.0.3 were added as dependencies to Scala IDE[reference] to build the tool. Finally, PolyBench version 4.1 was downloaded and unpacked inside Polyite root location. The hierarchy of the stack is shown in Figure \ref{fig::stack}.
+PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is a tool to iteratively optimize the program's schedule to increase its performance on multi-core systems. Polyite uses a patched version of Polly to extract Scop and generate the transformed code from the schedule. Polly is built on top of LLVM. Hence, as a first step of the set-up, LLVM[reference to be added], clang and Polly were cloned and built using cmake. The next step was building isl[reference to be added] and its binding for Scala 2.11. A wrapper is used to make these isl Scala binding available to Polyite. Next, two libraries Barvinok [reference] and Chernikova[reference] were set up. The former calculates the polyhedron's volume, while the latter generates the generator representation from linear constraints. As there is no build tool supplied with Polyite, all the required libraries, such as Apache Commons Lang 3.4 [reference], Apache Commons Math [reference] 3.6.1, OpenMPI 2.1.1, scala-parser-combinators 2.11-1.0.3 were added as dependencies to Scala IDE[reference] to build the tool. Finally, PolyBench version 4.1 was downloaded and unpacked inside Polyite root location. The stack hierarchy is shown in Figure \ref{fig::stack}.
 
 \begin{figure}[htbp]  
   \centering
@@ -466,7 +487,7 @@ During the training, the agent has two choices. Either keep choosing the new act
   \label{fig:randomness}
 \end{figure}
 
-Initially, the agent has little information, which will be a good approach to exploring more. Hence, the value of \textit{epsilon} should be higher. As the training progresses, this value should be reduced so that the agent does not spend time on actions which will not give us good rewards. However, the value should be decreased periodically. Otherwise, more exploitation in the initial phase can cause the agent to get stuck in sub-optimal space. We are reducing the \textit{epsilon} value based on the iteration of the training as described in Equation \ref{eq:RANDOMNESS}. Notably, if {$\epsilon$} value is zero, the agent always exploits the knowledge it has. On the other side, if the {$\epsilon$} value is one, the agent will always choose random actions.
+Initially, the agent has little information, which will be a good approach to exploring more. Hence, the value of \textit{epsilon} should be higher. As the training progresses, this value should be reduced so that the agent does not spend time on actions which will not give us good rewards. However, the value should be decreased periodically. Otherwise, more exploitation in the initial phase can cause the agent to get stuck in sub-optimal space. We are reducing the \textit{epsilon} value based on the iteration of the training as described in Equation \ref{eq:RANDOMNESS}. Notably, if {$\epsilon$} value is zero, the agent always exploits the knowledge it has. Conversely, the agent will always choose random actions if the {$\epsilon$} value is one.
 
 ((add pseudo code for epsilon implementation?))
 
@@ -491,7 +512,7 @@ where \textit{T} is Transition, \textit{s} is the current state in which the act
 
 \section{Leave-one-out Evaluation}
 
-We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. On the other side, our testing set should be large enough to measure our agent's performance accurately. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets to train the agent on the set which was used for testing and test it on the remaining set. In general, there are more than two partitions, each time, we take a different partition for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly. This method is shown in Figure \ref{fig:leave_one_out} with the help of five different kernels, however, there were more than five kernels during actual evaluation.
+We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. Conversely, our testing set should be large enough to measure our agent's performance accurately. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets to train the agent on the set which was used for testing and test it on the remaining set. In general, there are more than two partitions; each time, we take a different partition for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly. This method is shown in Figure \ref{fig:leave_one_out} with the help of five different kernels; however, there were more than five kernels during actual evaluation.
 
 \begin{figure}[htbp]
   \centering
@@ -508,16 +529,44 @@ Chart for speedup --
 chart for number of schedules ---
 chart with hardcode exploration vs learnt exploration ---
 
+We can perform two types of analysis based on the results of the experiments. Firstly, how is the implemented Reinforcement Learning algorithms (PolyGymRL) faring compared to the previous heuristic defined by PolyGym, which wasn't actually learning anything. As a sanity check, we are comparing the single kernel performance of PolyGym with PolyGymRL. It means we are performing the test on the only loop we used during training. In this case, we expect to yield higher speedups as no generalisation is involved. The comparison of single kernel performance of PolyGym and PolyGymRL is shown in Figure \ref{fig:single_PolyGym_PolyGymRL}. Here, we have trained the agent on a kernel for 12 iterations, tested it for 3 iterations and taken the average of the results. The results are quite similar in both cases, although a slightly better in the case of PolyGym. However, when we work with different sets of kernels in training and testing, using leave-one-out evaluation, there is a significant increase in the performance archived in PolyGymRL as shown in Figure \ref{fig:multi_PolyGym_PolyGymRL}. For a fair comparison, in this experiment, we trained an agent in the case of PolyGym as well; however, that training was just based on simple heuristics.
+
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Results_Basic.png}    
-  \caption{Leave-One-Out Evaluation}
-  \label{fig:result_basic}
+  \includegraphics[width=\textwidth]{Images/Chart_Single_PolyGym_PolyGymRL.png}    
+  \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL while training and testing on the same kernel}
+  \label{fig:single_PolyGym_PolyGymRL}
 \end{figure}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Chart_Multiple_PolyGym_PolyGymRL.png}    
+  \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL using Leave-One-Out Evaluation}
+  \label{fig:multi_PolyGym_PolyGymRL}
+\end{figure}
+ 
+When we work with different sets of kernels in training and testing, the achieved speedup does not match with the standards of single loop training as it is often in the case of generalisation. Different factors affecting these results are discussed in the below sections.
+
+\section{Limitation of the Training Set}
+The training set we have selected is very limited and it is unlikely that it might represent all the required characteristics for generating a performant schedule. The construction phase state representation has nearly 300 variables and the explorations state has more than 1000 variables. Just for the construction phase, if we assume that each of the 300 variables has a range of 3 different values (although some features like dimensions are not bounded and can have more than 10 values), there are 45451 combinations possible just for the construction. For Exploration, it can easily exceed 500 thousand combination possibilities. While this is not a bottleneck in terms of computation anymore, it is vital to have enough data to make learning accurate. No matter how clever the algorithm is, it may not beat a simple algorithm with large data, as the underlying approximation will not change much with different algorithms. The number of dependencies varies from 2 to 81 in the subset of just more than 15 kernels we have chosen. Hence, while testing a new kernel, we may not encounter any "nearby" cases from the training. This is just one of many factors associated with the limitations of our results in this experiment. 
+
+\section{Varying State Sizes in Reinforcement Learning}
+As stated earlier, another issue related to the type of problem in the discussion is that the state size varies significantly with each kernel. For a simple kernel like \textit{mvt}, the number of dimensions is 1 and the list of generators has a size of 8 during the exploration phase. While in the case of \textit{3mm}, the dimension size is 7 each containing 51 vertices and rays in total. Thus, the difference in the size of the state is vast. It makes the implementation of Reinforcement Learning algorithms a complex task, especially for those involving either some form of approximation or deep learning. One has to consider the right choice of representation for the features and other typical values of the features. For the kernel requiring a smaller state size in actuality, a bigger state size might add some noise to the overall learning procedure, increasing the number of computations and memory required to store the data.
+
+\section{The Necessity and Effects of Standardisation}
+The range of values of different features used in the representation varies considerably in this experiment. The number of dimensions theoretically varies in the range of (0, $\infty$). The dependency representation in the form of linear inequalities gives values in the range of (-$\infty$, $\infty$). The dependencies added in the current dimensions are represented as either 0 or 1. While the points resulting from the coefficients and the generators in each dimension ranges from (-$\infty$, $\infty$) during exploration. Thus, various state features are unbounded, for example, the number of dimensions in the construction phase, or the number and length of the generators in the exploration phase. Without standardisation, the weights of the Q-learning can quickly go to infinity. Moreover, the importance of all the features remains inconsistent leading to incorrect learning. On the other hand, standardising the values is not straightforward without the obvious minimum and maximum values. To convert the values ranging from (-$\infty$, $\infty$) to (0,1), we have used the standard logistic function \[{1/1+e^{-x}}\]. While, to convert (0, $\infty$) to (0,1), we have used the function \[{x / (1 + x)}\]. This helps keep the weights in the limit and gives equal importance to all the features. However, there will always be some loss of information due to this.
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=\textwidth]{Images/Standardisation.png}    
+  \caption{Standardisation Functions used in PolyGymRL Features}
+  \label{fig:Standardisation}
+\end{figure}
+
 
 \chapter{Conclusions}
 
-There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. We are able to overcome both these challenges by successfully implementing RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
+There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. We can overcome both these challenges by successfully implementing RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
 
 \section{Unresolved Issues and Future Work}
 
