@@ -218,8 +218,6 @@ While generating and executing the schedule as per Algorithm \ref{alg:generate_b
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
-\Input{env, sample\_name, agent\_cons, agent\_expl}
-\Output{reward, status, actions, isl\_map, buffer\_cons, buffer\_expl}
 
 \State{Initialize PolyGym environment}
 \State{Initialize construction agent\_cons and exploration agent\_expl}
@@ -274,23 +272,28 @@ Average\_Speedup \gets total\_speedup / total\_instance
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
 \Input{env, sample\_name, agent\_cons, agent\_expl}
-\Output{reward, status, actions, isl\_map, buffer\_cons, buffer\_expl}
+\Output{reward, status, actions, buffer\_cons, buffer\_expl}
 
 
-\State{Reset environment for the chosen sample}
-\State{Initialize buffer memories for construction and exploration phase}
+env.reset(sample\_name)
+
+\State{buffer_{cons} \gets \phi}$
+\State{buffer_{expl} \gets \phi}
 
 \While(\tcp*[f]{Until schedule is generated}){not done}
 {
     
     \If{Construction\_phase}{
-        \State{Choose Construction Action using Agent 1}
+        action = agent_{cons}.choose\_action(state, action\_list)$
         }
     \Else{
-        \State{Choose Exploration Action using Agent 2}
+        action = agent_{expl}.choose\_action(state, action\_list)$
         }
-    \State{Take step in environment and receive reward and next state}
-    \State{Add state, action, reward and n\_state to the respective buffer memory}    
+        
+    next\_state, reward, done = env.step(action)
+    
+    buffer\_cons / buffer\_expl \gets (state, action, n\_state, done)
+    
 }
 
 \end{algorithm}
@@ -514,16 +517,80 @@ chart with hardcode exploration vs learnt exploration ---
 
 We can perform two types of analysis based on the results of the experiments. Firstly, how are the implemented Reinforcement Learning algorithms (PolyGymRL) faring compared to the previous heuristic defined by PolyGym, which wasn't learning anything. As a basic primary check, we are comparing the single kernel performance of PolyGym with PolyGymRL. It means we are performing the test on the only loop we used during training. In this case, we expect to yield higher speedups as no generalisation is involved. The comparison of single kernel performance of PolyGym and PolyGymRL is shown in Figure \ref{fig:single_PolyGym_PolyGymRL}. Here, we have trained the agent on a kernel for 12 iterations, tested it for three iterations and taken the average of the results. The results are notably similar in both cases, although a slightly better in the case of PolyGym. However, when we work with different sets of kernels in training and testing, using leave-one-out evaluation, there is a significant increase in the performance archived in PolyGymRL as shown in Figure \ref{fig:multi_PolyGym_PolyGymRL}. For a fair comparison, in this experiment, we trained an agent in the case of PolyGym as well; however, that training was just based on simple heuristics.
 
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Std_Chart.png}
+  \captionof{figure}{With Standardisation}
+  \label{Std_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoStd_Chart.png}
+  \captionof{figure}{Without Standardisation}
+  \label{NoStd_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results for Standardisation and No Standardisation Approach}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Simple_Chart.png}
+  \captionof{figure}{Simple Representation}
+  \label{Simple_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoSimple_Chart.png}
+  \captionof{figure}{Full Representation}
+  \label{NoSimple_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results for Simple and Full Representation}
+\end{figure}
+
+\begin{figure}`
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Bias_Chart.png}
+  \captionof{figure}{With Bias}
+  \label{Bias_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoBias_Chart.png}
+  \captionof{figure}{Without Bias}
+  \label{NoBias_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results with and without bias while selecting coefficients}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/PolyGymRL_Versions.png}
+  \captionof{figure}{Comparison of Speedup for different PolyGymRL Versions}
+  \label{PolyGymRL_Versions}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/PolyGymRL_Strategies.png}
+  \captionof{figure}{Comparison of Speedup for different PolyGymRL Strategies}
+  \label{PolyGymRL_Strategies}
+\end{minipage}
+\end{figure}
+
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Chart_Single_PolyGym_PolyGymRL.png}    
+  \includegraphics[width=0.75\textwidth]{Images/Chart_Single_PolyGym_PolyGymRL.png}    
   \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL while training and testing on the same kernel}
   \label{fig:single_PolyGym_PolyGymRL}
 \end{figure}
 
 \begin{figure}[htbp]
   \centering
-  \includegraphics[width=\textwidth]{Images/Chart_Multiple_PolyGym_PolyGymRL.png}    
+  \includegraphics[width=0.75\textwidth]{Images/Chart_Multiple_PolyGym_PolyGymRL.png}    
   \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL using Leave-One-Out Evaluation}
   \label{fig:multi_PolyGym_PolyGymRL}
 \end{figure}
