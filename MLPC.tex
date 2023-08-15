@@ -91,7 +91,7 @@ This dissertation seeks to find the answers to the following objective questions
 
 \section{Structure}
 
-This project proposal is structured as follows: Following the discussion regarding the problem statement, research objective, novelty, and significance of the project in Section 1, Section 2 provides an overview of the background and literature review. Section 3 focuses on project methodology, limitations, risks, and ethical considerations. Section 4 explains how the evaluation of the developed methods will be carried out. Section 5 discusses expected outcomes, and Section 6 outlines the research timeline, milestones, and deliverables.
+The overall structure of the thesis takes the form of six chapters. The first chapter gives an overview of the motivation and objectives behind taking up this study. Chapter Two begins by laying out the theoretical concepts such as Polyhedral Compilation and Reinforcement Learning. It will then go on to explain the recent literature history of this subject. The third chapter is related to the methodology used for this study. The next chapter gives an overview of the evaluation and looks at how experiments were performed. The fifth chapter presents the research findings and results, Chapter Six concludes the study and discusses unresolved issues and future work.
 
 \chapter{Background}
 
@@ -148,9 +148,19 @@ Polygym presents an RL environment for Polyhedral Optimization\cite{PolyOpt}, wh
 
 \section{Literature Review}
 
-(To be updated)Previous surveys have explored the relationship between Machine Learning and Compiler Optimizations \cite{8357388}\cite{9232934}. Several studies have also begun to examine how RL can be applied to compiler optimizations. In 2014, Emani \textit{et al.} demonstrated a new approach for dynamically mapping parallel programs to varying system resources \cite{10.1007}. They used Markov Decision Process for online thread scheduling and an offline model trained based on the system environment and the structure of the code. Like PolyGym, CompilerGym extends the Gym interface to provide a reinforcement learning environment to researchers for compiler optimizations \cite{CompilerGym}. A recent study by Mammadli \textit{et al.} presented an excellent example of using Deep Reinforcement Learning to find effective sequences of phase-ordering, a long-standing problem for compiler generators \cite{static.neural}. However, finding profitable loop transformations is a much more fine-drawn problem than finding the optimum number of threads or distributing the work on different cores. In an investigation related to current Single Instruction, Multiple Data (SIMD) architectures, Neurovectorizer \cite{NeuroVectorizer} addresses the challenge of finding a good vectorization strategy with the help of Deep Reinforcement Learning. MLGO \cite{10.48550} attempted to leverage Reinforcement Learning and Evolutionary Algorithms to make decisions about function in-lining to improve code size. However, the evaluation for the code size could be less challenging than the evaluation of the heuristics focusing on the program's execution speed due to the uncertainty involved in the time taken during each execution.
+In the domain of compiler optimization, the space of possible transformations
+, including their configurations and orderings are vast. Among these, which optimization to choose depend on the nature of the program itself and the hardware it is running on. Moreover, if the combinations of the optimization selected are not correct for the problem, it can actually degrade the performance.  As the compiler optimizations continue growing, the problem of selecting the effective combination of the optimizaantions is becoming more and more challenging.  With the growing complexities of the systems, software and security, the rate of improvement in the compilers has to keep up to help find answers to the open research problems \cite{compilerresearch}. There is a huge potential for the machine learning algorithm to explore this space, and it has been a topic of interest among researchers for a few decades. However, its success in the industrial compilers in the production environment has not been massive until now. In recent years though, there has been an increasing amount of literature on the subject of Machine Learning for Compiler Optimizations, which provides an excellent background to our research topic.
 
-All these methods, however, did not consider polyhedral optimizations. In 1993, Feautrier presented the theoretical basis of the polyhedral formulation for single and multidimensional schedules \cite{single}\cite{multi}. After more than twenty years, Pouchet \textit{et al.} proposed an iterative optimization method for systematic exploration of the schedule search space \cite{it_Single}\cite{it_multi}. Building on these methods, Ganser \textit{et al.} demonstrated optimization improvements with genetic algorithms in 2017 \cite{10.1145/3109482}. One year later, they showed a reduction in benchmarking efforts by using surrogate performance models, where they trained the models based on the program transformation evaluated in the previous iterative optimizations at the cost of 15\% degradation in speed-up \cite{10.1145/3291773}. This set of methods followed the iterative approach with benchmarking, making them time-consuming.
+
+Iterative Compilation - 
+Direct heuristics
+
+\cite{inproceedingsml} carried out one of the earliest attempts in this direction to use Machine Learning in branch prediction by giving the input of the branch history and making a prediction. Compy-Learn\cite{9232946} presented a toolbox to explore various representations and models of the code and choose the best one based on the task of the program. \cite{8357388} conducted a systematic review of the research directions undertaken in this field, discussing the importance of feature engineering and model generation and deployment. A significant analysis and discussion on the subject were also presented by Leather \textit{et al.}\cite{9232934}. Deep Learning reduces the dependence on the most accurate representation; rather, the agent will try to find the suitable features given that we provide enough data. This was demonstrated by Cummins \textit{et al.}\cite{inproceedingsdl} using neural networks to learn the code representation to find the best optimizations without using manually created code features.
+
+Reinforcement Learning is seen as one of the most promising approaches for finding the correct strategy for applying optimizations\cite{9232934}. \cite{10.1007} showcased Markow Decision Process based learning(2014) to map the parallelism in the program with computing resources. They were able to adapt to varying resources and programs to predict the best thread mapping and obtained an average speedup of 2.14x over the default OpenMP policy. How to use Reinforcement Learning and Deep Learning in a combined way is no longer an open question, although it is evolving rapidly and a number of studies have begun to examine this method. In 2020, Neurovectorizer \cite{NeuroVectorizer} employed deep RL approach in LLVM compiler to take the code as input and implement vectorization. In the same vein,  Mammadli \textit{et al.} 
+utilised deep reinforcement learning to address the long enduring problem of phase ordering. MLGO \cite{10.48550} used Policy Gradients and Evolutionary Strategies to reduce the size of the code with the help of function inlining. The nature of the optimization was different in this case as the focus was not to improve the heuristics to improve the execution speed.  Along the same lines pf PolyGym, CompilerGym \cite{CompilerGym} builds on top of OpenAI Gym interface and establishes an RL based environment for researchers to interact with compilers.
+
+In 1993, Feautrier presented the theoretical basis of the polyhedral formulation for single and multidimensional schedules \cite{single}\cite{multi}. After more than twenty years, Pouchet \textit{et al.} proposed an iterative optimization method for systematic exploration of the schedule search space \cite{it_Single}\cite{it_multi}. Building on these methods, Ganser \textit{et al.} demonstrated optimization improvements with genetic algorithms in 2017 \cite{10.1145/3109482}. One year later, they showed a reduction in benchmarking efforts by using surrogate performance models, where they trained the models based on the program transformation evaluated in the previous iterative optimizations at the cost of 15\% degradation in speed-up \cite{10.1145/3291773}. This set of methods followed the iterative approach with benchmarking, making them time-consuming.
 
 In contrast, methods such as isl\cite{isl} and Pluto\cite{Bondhugula07pluto:a} generated the models directly to find a good compilation strategy in less time. However, this approach has certain limitations. The optimization performed depends on the type of loop being analyzed, and its performance can not beat the time-taking iterative methods. Hence, the proposed research with Reinforcement Learning fits very well between these two approaches.
 
@@ -464,7 +474,7 @@ PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is 
 
 \section{Epsilon-Greedy Approach}
 
-During the training, the agent has two choices. Either keep choosing the new actions, which is called exploration or choose the actions giving the most reward, termed exploitation. Exploration is good for the long run as the agent gains new knowledge. While exploitation helps earn immediate reward, even though it might be sub-optimal. The agent can follow only one approach at a time, presenting an exploration-exploitation trade-off. In the implementation, a parameter \textit{epsilon} was kept to introduce the randomness in the training. We choose a random number from 0 to 1. If the number is less than \textit{epsilon}, then the agent explores, or else it exploits, Figure \ref{fig:randomness}.
+During the training, the agent has two choices. Either keep choosing the new actions, which is called exploration or choose the actions giving the most reward, termed exploitation. Exploration is good for the long run as the agent gains new knowledge. While exploitation helps earn immediate rewards, even though it might be sub-optimal. The agent can follow only one approach at a time, presenting an exploration-exploitation trade-off. In the implementation, a parameter \textit{epsilon} was kept to introduce the randomness in the training. We choose a random number from 0 to 1. If the number is less than \textit{epsilon}, then the agent explores, or else it exploits, Figure \ref{fig:randomness}.
 
 \begin{figure}[htbp]
   \centering
@@ -508,78 +518,7 @@ We have conflicting priorities while distributing training and testing sets. Our
 \end{figure}
 
 \chapter{Results and Discussions}
-Construction time
-Example of loops which performed well ---
-Loops which did not perform very well , possible reasons for below average performance --- 
-Chart for speedup -- 
-chart for number of schedules ---
-chart with hardcode exploration vs learnt exploration ---
-
-We can perform two types of analysis based on the results of the experiments. Firstly, how are the implemented Reinforcement Learning algorithms (PolyGymRL) faring compared to the previous heuristic defined by PolyGym, which wasn't learning anything. As a basic primary check, we are comparing the single kernel performance of PolyGym with PolyGymRL. It means we are performing the test on the only loop we used during training. In this case, we expect to yield higher speedups as no generalisation is involved. The comparison of single kernel performance of PolyGym and PolyGymRL is shown in Figure \ref{fig:single_PolyGym_PolyGymRL}. Here, we have trained the agent on a kernel for 12 iterations, tested it for three iterations and taken the average of the results. The results are notably similar in both cases, although a slightly better in the case of PolyGym. However, when we work with different sets of kernels in training and testing, using leave-one-out evaluation, there is a significant increase in the performance archived in PolyGymRL as shown in Figure \ref{fig:multi_PolyGym_PolyGymRL}. For a fair comparison, in this experiment, we trained an agent in the case of PolyGym as well; however, that training was just based on simple heuristics.
-
-
-\begin{figure}
-\centering
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/Std_Chart.png}
-  \captionof{figure}{With Standardisation}
-  \label{Std_Chart}
-\end{minipage}
-\hspace{.05\linewidth}
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/NoStd_Chart.png}
-  \captionof{figure}{Without Standardisation}
-  \label{NoStd_Chart}
-\end{minipage}
-\State{Comparison of PolyGymRL Results for Standardisation and No Standardisation Approach}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/Simple_Chart.png}
-  \captionof{figure}{Simple Representation}
-  \label{Simple_Chart}
-\end{minipage}
-\hspace{.05\linewidth}
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/NoSimple_Chart.png}
-  \captionof{figure}{Full Representation}
-  \label{NoSimple_Chart}
-\end{minipage}
-\State{Comparison of PolyGymRL Results for Simple and Full Representation}
-\end{figure}
-
-\begin{figure}`
-\centering
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/Bias_Chart.png}
-  \captionof{figure}{With Bias}
-  \label{Bias_Chart}
-\end{minipage}
-\hspace{.05\linewidth}
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/NoBias_Chart.png}
-  \captionof{figure}{Without Bias}
-  \label{NoBias_Chart}
-\end{minipage}
-\State{Comparison of PolyGymRL Results with and without bias while selecting coefficients}
-\end{figure}
-
-\begin{figure}
-\centering
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/PolyGymRL_Versions.png}
-  \captionof{figure}{Comparison of Speedup for different PolyGymRL Versions}
-  \label{PolyGymRL_Versions}
-\end{minipage}
-\hspace{.05\linewidth}
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/PolyGymRL_Strategies.png}
-  \captionof{figure}{Comparison of Speedup for different PolyGymRL Strategies}
-  \label{PolyGymRL_Strategies}
-\end{minipage}
-\end{figure}
+There are two major questions we are trying to answer by undertaking this study. The first question is how is PolyGymRL faring in comparison to original PolyGym implementation. The next question is related to comparing the difference between performance of different variations of the algorithm. As a basic primary check, we are comparing the single kernel performance of PolyGym with PolyGymRL, meaning that we are performing the test on the same loop we used during the training. In this case, we expect to yield higher speedups as no generalisation is involved. The comparison of single kernel performance of PolyGym and PolyGymRL is shown in Figure \ref{fig:single_PolyGym_PolyGymRL}. As there is no training involved in PolyGym, the heuristics can yield different results each time.  In case of PolyGYmRL, we have trained the agent on a kernel for 12 iterations. We test both the implementations for three iterations and take the geometric mean of the results. Notably, the original PolyGym research paper listed the best result, while here we are considering the geometric mean values, hence both research findings are not directly comparable, especially as it is heavily based on randomness. For the second experiment as shown \ref{fig:multi_PolyGym_PolyGymRL}, we work with different sets of kernels in training and testing, using leave-one-out evaluation. From both the charts, it can be seen that PolyGymRL reported better speedups thanks to the learning of the agent. From this data, we can also see that when we work with different sets of kernels in training and testing, the acquired speedup does not match the standards of single-loop training as it is often in the case of generalisation.
 
 \begin{figure}[htbp]
   \centering
@@ -594,8 +533,73 @@ We can perform two types of analysis based on the results of the experiments. Fi
   \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL using Leave-One-Out Evaluation}
   \label{fig:multi_PolyGym_PolyGymRL}
 \end{figure}
- 
-When we work with different sets of kernels in training and testing, the achieved speedup does not match the standards of single-loop training as it is often in the case of generalisation. Different factors affecting these results are discussed in the below sections.
+
+If we now turn to our next analysis, we compare the results of PolyGymRL for various strategies and configurations. There are mainly three factors we have considered, standardisation, representation and bias. Figure \ref{fig:Std_Chart} and Figure \ref{fig:NoStd_Chart} presents the mean speedups obtained for different PolyBench kernels with or without applying the standardisation. How we have applied the standardisation is explained in more detail in \ref{sec:std}. The last data on the horizontal axis corresponds to the average taken across all the kernels for the respective strategy. The average speedups for the strategies involving standardisation yields 1.23x better performance than those without standardisation. Moving now to the experimental evidence on the effect of keeping simple or full representation, the results can be seen in \ref{fig:Simple_Chart} and \ref{fig:NoSimple_Chart}. The agents seem to be utilising the detailed information provided in the full representation to make better decisions. Figure \ref{fig:Bias_Chart} and Figure \ref{fig:NoBias_Chart} compares the results obtained while keeping bias for action \textit{select\_coeff0} during exploration, versus otherwise. The difference between both the strategies was significant, as selecting lower coefficients might help find the schedules which are less complex. A comparison among all these strategies is provided in Figure \ref{fig:PolyGymRL_Versions}.
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Std_Chart.png}
+  \captionof{figure}{With Standardisation (Mean: 1.40)}
+  \label{fig:Std_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoStd_Chart.png}
+  \captionof{figure}{Without Standardisation (Mean: 1.14)}
+  \label{fig:NoStd_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results for Standardisation and No Standardisation Approach}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Simple_Chart.png}
+  \captionof{figure}{Simple Representation (Mean: 0.98)}
+  \label{fig:Simple_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoSimple_Chart.png}
+  \captionof{figure}{Full Representation (Mean: 1.40)}
+  \label{fig:NoSimple_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results for Simple and Full Representation}
+\end{figure}
+
+\begin{figure}`
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Bias_Chart.png}
+  \captionof{figure}{With Bias(Mean: 1.76)}
+  \label{fig:Bias_Chart}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/NoBias_Chart.png}
+  \captionof{figure}{Without Bias(Mean: 0.79)}
+  \label{fig:NoBias_Chart}
+\end{minipage}
+\State{Comparison of PolyGymRL Results with and without bias while selecting coefficients}
+\end{figure}
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/PolyGymRL_Versions.png}
+  \captionof{figure}{Comparison of Speedup for different PolyGymRL Versions}
+  \label{fig:PolyGymRL_Versions}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/PolyGymRL_Strategies.png}
+  \captionof{figure}{Comparison of Speedup for different PolyGymRL Strategies}
+  \label{fig:PolyGymRL_Strategies}
+\end{minipage}
+\end{figure}
+
+Figure \ref{fig:PolyGymRL_Strategies} shows category wise comparison of different approaches undertaken in the study. What is interesting about the data in this table is that it clearly demonstrates that better schedules can be generated while applying standardisation, using full representation and keeping the bias toward selecting coefficients. Interestingly though, the version involving bias, full representation and standardisation does not yield the best result among all. This is a rather unexpected outcome. Surprisingly, some of the kernels like \textit{2mm} did not perform as well as expected under this category. In the below sections, we have discussed possible reasons for some inconsistencies in the findings and not very significant performances of some of the kernels. More advanced algorithms and effective parameter search, such as number of schedules, training iterations, learning parameters which were not the point of focus in this study, may help resolve some of the issues and improve what we have implemented until now.
 
 \section{Limitation of the Training Set}
 The training set we have selected is limited and it is unlikely that it might represent all the required characteristics for generating a performant schedule. The construction phase state representation has nearly 300 variables, and the explorations state has more than 1000 variables. For the construction phase, if we assume that each of the 300 variables has a range of 3 different values (although some features like dimensions are not bounded and can have more than 10 values), there are 45451 combinations possible just for the construction. For exploration, it can easily exceed 500 thousand combination possibilities. While this is not a bottleneck in terms of computation anymore, it is vital to have enough data to make learning accurate. No matter how clever the algorithm is, it may not beat a simple algorithm with extensive data, as the underlying approximation will mostly stay the same with different algorithms. The number of dependencies varies from 2 to 81 in the subset of just more than 15 kernels we have chosen. Hence, while testing a new kernel, we may not encounter any "nearby" cases from the training. This is just one of many factors associated with the limitations of our results in this experiment. 
@@ -604,6 +608,7 @@ The training set we have selected is limited and it is unlikely that it might re
 As stated earlier, another issue related to the type of problem in the discussion is that the state size varies significantly with each kernel. For a simple kernel like \textit{mvt}, the number of dimensions is 1, and the list of generators has a size of 8 during the exploration phase. While in the case of \textit{3mm}, the dimension size is 7, each containing 51 vertices and rays. Thus, the difference in the size of the state is vast. This difference makes the implementation of Reinforcement Learning algorithms on this problem a complex task, especially for those involving either some form of approximation or deep learning. One has to consider the right choice of representation for the features and other typical values of the features. For the kernel requiring a smaller state size, a more extensive state size might add some noise to the learning procedure, increasing the number of computations and memory required to store the data.
 
 \section{The Necessity and Effects of Standardisation}
+\label{sec:std}
 The range of values of different features used in the representation varies considerably in this experiment. The number of dimensions theoretically varies in the range of (0, $\infty$). The dependency representation in the form of linear inequalities gives values in the range of (-$\infty$, $\infty$). The dependencies added in the current dimensions are either 0 or 1. At the same time, the points resulting from the coefficients and the generators in each dimension ranges from (-$\infty$, $\infty$) during exploration. Thus, various state features are unbounded, for example, the number of dimensions in the construction phase, or the number and length of the generators in the exploration phase. Without standardisation, the weights of the Q-learning can quickly go to infinity. Moreover, the importance of all the features remains inconsistent leading to incorrect learning. On the other hand, standardising the values is only straightforward with the apparent minimum and maximum values. To convert the values ranging from (-$\infty$, $\infty$) to (0,1), we have used the standard logistic function \[{1/1+e^{-x}}\]. While to convert (0, $\infty$) to (0,1), we have used the function \[{x / (1 + x)}\]. This standardisation helps keep the weights within the limit and gives equal importance to all the features. However, there will always be some loss of information due to this.
 
 \begin{figure}[htbp]
@@ -616,12 +621,12 @@ The range of values of different features used in the representation varies cons
 
 \chapter{Conclusions}
 
-There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. We can overcome both these challenges by successfully implementing RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
+There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. A few general challenges are associated with applying RL algorithms to compiler optimizations. The representation space is huge, and evaluating as we run the programs to obtain the rewards takes time. Dealing with these challenges, we successfully implemented RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
 
 \section{Unresolved Issues and Future Work}
 
-A few unresolved issues need to be addressed in the future. While a few loops like \textit{covariance} achieved a speedup of more than 8, we did not witness similar results with all the loops. In fact, for a few loops like \textit{atax}, the speedup was relatively less compared to clang -O3 flag. Other advanced Reinforcement Learning algorithms, especially deep reinforcement learning algorithms such as DQN \cite{DBLP:journals/corr/MnihKSGAWR13}, Double Deep Q-Networks \cite{DDQN} and Deep Deterministic Policy Gradients (DDPG) \cite{BHATNAGAR20092471} can be implemented and tested by keeping this implementation as a reference. An extensive hyper parameters scan can be performed related to learning rate, gamma, epsilon and, size and type of the neural networks, output functions in the case of deep learning. PolyIte already uses Genetic Algorithm for random exploration.
-Similarly, in this problem, a combination of Reinforcement Learning algorithms and Genetic Algorithms\cite{GA} can be interesting. We have already tried a variety of state representations to facilitate learning, and more experiments can be continued in this direction. The reward shaping is relatively simple by distributing the speedup to all the action-state pairs. There can be a few enhancements to how these rewards are distributed. For example, the agent can be penalised when the constructed schedule is incomplete or results in an execution error, and a negative reward can be assigned to the actions undertaken.
+A few unresolved issues need to be addressed in the future. While a few loops like \textit{covariance} achieved a speedup close to 8, we did not witness similar results with all the loops. In fact, for a few loops like \textit{atax}, the speedup was relatively less compared to clang -O3 flag. Other advanced Reinforcement Learning algorithms, especially deep reinforcement learning algorithms such as DQN \cite{DBLP:journals/corr/MnihKSGAWR13}, Double Deep Q-Networks \cite{DDQN} and Deep Deterministic Policy Gradients (DDPG) \cite{BHATNAGAR20092471} can be implemented and tested by keeping this implementation as a reference. An extensive hyper parameters scan can be performed related to learning rate, gamma, epsilon and, size and type of the neural networks, output functions in the case of deep learning. PolyIte already uses Genetic Algorithm for random exploration. Although certain loops may not be as learnable as others, there will always be a difference in the speedup found on the new schedules for different kernels.
+Similarly, in this problem, applying a combination of Reinforcement Learning algorithms and Genetic Algorithms\cite{GA} can be interesting. We have already tried a variety of state representations to facilitate learning, and more experiments can be continued in this direction. The reward shaping is relatively simple by distributing the speedup to all the action-state pairs. There can be a few enhancements to how these rewards are distributed. For example, we can explore the suitable penalty for the agent when the constructed schedule is incomplete or results in an execution error.
 
 There were a few kernels like \textit{durbin}, which involve a very high search space construction time crossing the timeout barrier; hence we had to leave them out of our research. Recent advancements in high performance computing and performance programming can make this construction faster and improve scalability. There can be simple changes reducing the memory and storage requirements. For example, a single RL agent can carry out both construction and exploration activities instead of two. However, some limitations related to time taken are the characteristics of the polyhedral compilation itself and have little to do with our research. Currently, the study is limited to the kernels provided by PolyBench. In future, we are optimistic that this experiment can be carried out on other real-world kernel scenarios.
 
@@ -634,9 +639,34 @@ There were a few kernels like \textit{durbin}, which involve a very high search 
 % You may delete everything from \appendix up to \end{document} if you don't need it.
 \appendix
 
-\chapter{First appendix}
+\chapter{Results}
 
-\section{First section}
+\section{PolyGymRL Results}
+
+\begin{figure}[htbp]
+  \centering
+  \includegraphics[width=0.95\textwidth]{Images/BenchMarking.png}    
+  \caption{Result Data for PolyGymRL}
+  \label{fig:BenchMarking}
+\end{figure}
+
+\section{Comparison of PolyGym and PolyGymRL}
+
+\begin{figure}
+\centering
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Benchmarking_Single.png}
+  \captionof{figure}{Results of PolyGym and PolyGymRL for single kernel}
+  \label{Benchmarking_Single}
+\end{minipage}
+\hspace{.05\linewidth}
+\begin{minipage}{.45\linewidth}
+  \includegraphics[width=\linewidth]{Images/Benchmarking_Multiple.png}
+  \captionof{figure}{Results of PolyGym and PolyGymRL for multiple kernels}
+  \label{Benchmarking_Multiple}
+\end{minipage}
+\State{Results Comparison of PolyGym and PolyGymRL for single and multiple kernels}
+\end{figure}
 
 
 
