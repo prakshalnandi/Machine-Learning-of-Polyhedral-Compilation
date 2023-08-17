@@ -42,7 +42,7 @@
 \abstract{
 
 In most compute-intensive applications, a considerable amount is spent in loops. Compilers like clang offer many optimisations, such as tiling, fission, fusion, and unwinding, to increase the execution performance of these loops. One of the ways to optimise loop performance is through polyhedral compilation strategies, which apply to a specific class of loops. If the loops follow a specific structure, it is possible to change the execution order of the loop statements to make the program run faster. However, this requires domain-specific knowledge to design suitable heuristics, which is also difficult to generalise. \par
-This study set out to examine the possibilities of using Reinforcement Learning algorithms to apply semantics-preserving transformations to optimise the schedule of the loop execution. As a background to this research, PolyGym \cite{P1} has already presented Polyhedral Compilation as an environment of Reinforcement Learning. We continue this investigation by implementing Q-learning agents to construct the number of valid schedules and then explore the schedule space to find a highly effective schedule using RL algorithms. We demonstrate that we can generalise the learning on PolyBench\cite{polybench} kernels and achieve a mean speedup of 2.11x compared to clang -O3 flag.
+This study set out to examine the possibilities of using Reinforcement Learning algorithms to apply semantics-preserving transformations to optimise the schedule of the loop execution. As a background to this research, PolyGym \cite{P1} has already presented Polyhedral Compilation as an environment of Reinforcement Learning. We continue this investigation by implementing Q-learning agents to construct the number of valid schedules and then explore the schedule space to find a highly effective schedule using RL algorithms. We demonstrate that we can generalise the learning on PolyBench\cite{polybench} kernels and achieve a geometric mean speedup of 1.44x compared to clang -O3 flag.
 }
 
 \maketitle
@@ -52,14 +52,14 @@ This study set out to examine the possibilities of using Reinforcement Learning 
    {\end{frontenv}\newpage}
 
 \begin{ethics}
-This research does not involve any human participants or personal data. All data are collected based on simulation experiments on benchmark suites; hence no ethical concerns are associated with the project.
+This study does not involve human participants or personal data. All data are collected based on simulation experiments on the benchmark suites; hence no ethical concerns are associated with the project.
 
 \standarddeclaration
 \end{ethics}
 
 
 \begin{acknowledgements}
-Any acknowledgements go here.
+I would like to thank my supervisor Andrés Goens for his continuous guidance and support throughout the project. He has always been very encouraging and motivated me whenever required. I would also like to thank Alexander Brauckmann for explaining the background work of the subject of study. I am grateful to my wife and family for providing personal support throughout the MSc programme.
 \end{acknowledgements}
 
 
@@ -71,8 +71,9 @@ Any acknowledgements go here.
 
 \section{Motivation}
 
-Recently, there have been many advancements in machine learning for compiler optimization. One class of optimizations among these is finding the performant schedule for the nested loops following specific properties. However, this involves many complex decisions and presents a high entry barrier requiring domain knowledge. The idea behind using machine learning for this purpose is to reduce human intervention, which also allows building modular compliers facilitating the application of transformations. Reinforcement Learning is currently seen as a promising approach where the agent can iteratively build a high-performing code by taking actions and learning from the observations.\cite{8357388}\cite{9232934}. PolyGym has leveraged the Polyhedral model and presented an environment for Reinforcement Learning to learn the heuristics for composing performant schedules. It proposes a generic MDP to apply transformations but does not define any agent. \break
-As a first point, we develop a Q-Learning RL agent from the literature\footnote{https://github.com/prakshalnandi/polygym}. We define the state features using the polyhedral model, which will provide observations for RL algorithms. We compare the performance of the schedule generated using this approach with simple heuristics and also explore different variations of the configurations. This will be a stepping stone in an emerging and promising field of machine learning for compilers and provide a basis to experiment further to implement more advanced combinations of machine learning algorithms.
+Recently, there have been many advancements in machine learning for compiler optimization. One class of optimizations among these is finding the performant schedule for the nested loops following specific properties. However, this involves many complex decisions and presents a high entry barrier requiring domain knowledge. The idea behind using machine learning for this purpose is to reduce human intervention, which also allows building modular compliers facilitating the application of transformations. Reinforcement Learning is currently seen as a promising approach where the agent can iteratively build a high-performing code by taking actions and learning from the observations.\cite{8357388}\cite{9232934}. PolyGym has leveraged the Polyhedral model and presented an environment for Reinforcement Learning to learn the heuristics for composing performant schedules. It proposes a generic MDP to apply transformations but does not define any agent.
+
+As a first point, we develop a Q-Learning RL agent from the literature\footnote{https://github.com/prakshalnandi/polygym}. We define the state features using the polyhedral model, which will provide observations for RL algorithms. We compare the performance of the schedule generated using this approach with the best performance of a random heuristic and also explore different variations of the configurations. This will be a stepping stone in an emerging and promising field of machine learning for compilers and provide a basis to experiment further to implement more advanced combinations of machine learning algorithms.
 
 
 
@@ -133,17 +134,11 @@ The geometric properties of the dependencies between two statements during loop 
 
 Polygym presents an RL environment for Polyhedral Optimization\cite{PolyOpt}, where the transformations are applied using actions selected through a loop-agnostic Markov Decision Process, adhering to OpenAI Gym interface \cite{Gym}. First, it constructs a search space of the transformed schedules by applying Farkas' lemma \cite{schrijver1998theory} to generate a set of linear inequalities from the affine functions representing the schedule. The next step navigates this search space to find the highly profitable schedule using the generators obtained by Chernikova's algorithm. The original implementation of Polygym did not intend to offer any optimization strategy, though it used a random heuristic to evaluate the environment space. Even by using this simple heuristic on the space defined by PolyGym, it was possible to find profitable schedules with an overall 3.39x speedup over those found using o3-clang12 and 1.34x speedup over \textit{isl-polly12}. However, Polygym neither uses any agent nor implements any learning behaviour. Moreover, this heuristics is specific to the particular loop under testing and not generalised. This thesis demonstrates the results of using agent-based RL methods to generalise the learning and evaluate its performance building up on Polygym implementation.
 
-\section{Deep Reinforcement Learning}
 
-The problem of reinforcement learning can become challenging if the number of states possible in the environment is too vast. Deep Learning addresses this challenge by approximating the Q-values of the state and action pairs using model parameters called weights. The framework of a neural network consists of an input layer, an output layer and one or more intermediate layers. The neurons in the layer have weights associated with them, which we are trying to optimize. The output generated by the network is compared with the target, and loss will be calculated. Different loss functions are available for comparisons, such as mean square error, cross-entropy loss or maximum likelihood loss. They all represent how far the model's output is compared to the desired result. Once we know the loss value, the gradients can be calculated considering the effect of each parameter on the output. Using an optimizer, such as SGD, Adam, or RMSprop, we can change the weight values to reduce the loss using the calculated gradients. We are moving towards the desired result by doing this in an iterative manner. Performing all these steps manually could help understand how deep learning works, but it could quickly get complicated in practical applications. Luckily, we have libraries such as PyTorch, which can calculate the gradients and perform backpropagation (explain backpropagation) to develop new network parameters. A classic example of what can be done when Deep Learning and Reinforcement Learning come together is AlphaGo \cite{AlphaGo}, developed by DeepMind, which successfully beat the world champion of the game of Go at that time. Prior to that, DeepMind had been using Deep Reinforcement Learning to solve the Atari games and achieve human-level performance\cite {DeepMind}.
-
-\section{PyTorch}
-
-PyTorch implements a dynamic graph approach for gradient calculation, where the library keeps track of the operations performed on the data and unrolls this operation sequence when we need to calculate the associated gradients. The basic building block of DL is the \textit{tensor}, representing a multi-dimensional array, which is also implemented by this toolkit. PyTorch has methods to create tensors, convert numpy arrays to tensors, and generate tensors with specific data, such as \textit{torch.ones()}. It can also apply different tensor operations to concatenate, resize and transpose them. The library also allows for offloading the tensor calculations to GPU by specific the \textit{}device property associated with it. A tensor may or may not have gradient construction available, and this behaviour can be configured and retrieved using properties such as \textit{requires\_grad} and \textit{grad}. By using \textit{backward} operation, we can ask PyTorch to calculate the gradients of all the variables in the network. By leveraging \textit{nn.Module} of PyTorch, we can define the network architecture, design dropouts, reinitiate the gradients and apply transformations such as \textit{Softmax}.
 
 \section{Clang/LLVM/Polly}
 
-LLVM is a set of optimizer libraries built around an intermediate representation of the code known as LLVM-IR. Like many other analyzing and optimizing tools, it uses the Clang frontend, a \textit{C} language family compiler, as a library.
+LLVM is a set of optimizer libraries built around an intermediate representation of the code known as LLVM-IR. It uses the Clang frontend, a \textit{C} language family compiler, as a library.
 Polly applies polyhedral transformations on top of this intermediate representation\cite{grosser2011polly}. It first identifies relevant regions of the code suitable for transformations, called Static Control Parts(\textit{SCoP})\cite{grosser2011polly}. It then transforms these regions into a polyhedral representation based on integer sets and maps. In this representation, it applies optimizations, for example, related to data locality and parallelism, finally converting it back into the optimized version of the executable code. As Polly analyses the low-level IR instead of the programming language itself, it is not dependent on any language or platform.
 
 A \textit{SCoP}, generally consisting of loops and conditions, contains part of the program for which control flow and memory access can be determined at the compile time. For a loop to be identified as \textit{SCoP}, the scalar expression for the iteration count should be able to be represented as an affine function. Similarly, the memory accesses for loading and storing should also be possible to be translated into an affine expression. Polly allows the export of this polyhedral representation into a \textit{JSON} based format called \textit{jSCoP},
@@ -152,52 +147,59 @@ allowing us to apply external optimization, which can be imported back using the
  Figure \ref{fig:Original_Loop} showcases an example of a \textit{C} loop doing matrix multiplication. Using \textit{clang}, we can identify the \textit{SCoP} parts of the code and convert them into LLVM representation as displayed in Figure \ref{fig:Poly_Rep}. The representation consists of statements as basic building blocks. Apart from its name, a \textit{statement} consists of \textit{Domain}, \textit{Schedule} and \textit{Access}. The \textit{Domain} represents a set of different loop iterations executing the statement as a named integer set. The \textit{schedule} is an integer map which assigns a point to each iteration in a multi-dimensional space following lexicographical order. Changing the schedule will change the order in which the kernel is executed. \textit{Access} is a pair of kind and relation. The kind can be either \textit{read}, \textit{write} or may \textit{write}. The access relation maps the Domain with the memory space, which generally can be represented by an affine function. Figure \ref{fig:Dependencies} explains the dependencies information extracted from the above representation, which can exist between two statements or two iterations of the same statement. When the transformations have been applied, AST can be generated from the LLVM representation as shown in Figure \ref{fig:AST} and the program can be executed\cite{10.1145/2743016}.
 
  \section{Q-learning}
+Reinforcement Learning is one of the three main machine learning methods, along with Supervised Learning and Unsupervised Learning\cite{10.5555/3312046}. It differs from supervised learning as it is not provided with labelled output data. It is also different from unsupervised learning as it is not trying to find a hidden structure from the input data. The learner, called an agent, observes its current environment, takes an action and receives a reward signal. The observation of the current environment is called a state. The reward signal will help the agent learn if the action it had chosen was a good choice. In a typical example, the chosen action also affects future situations and rewards. Thus, the goal of Reinforcement Learning is to maximize the total reward.
 
- The value of a state can be defined as the expectation of the maximum reward which can be gained from that state, considering all the actions that can be taken in that state. To select the optimal actions, we will need to determine the values of each action and choose the one with the best possible result. In a way, the value of a state corresponds to the value of the action we can take from this state, giving us the maximum possible outcome.
+Q-Learning is a technique of Reinforcement Learning which tries to define an optimal policy so that the agent can take the best action after observing the environment\cite{QL}. It does that by learning the values of the state-action pairs. The value of a state-action \textit{(s,a)} pair can be defined as the expectation of the maximum reward which can be gained from state \textit{s}, by taking action \textit{a}. Given a particular state, we are trying to learn the rewards each action can yield and choose the best one out of them.
 
- The state-action value can be represented as mentioned in Equation \ref{eq:SAQV} (sn - change this),
-
+For each state-action pair visited, the value Q(s,a) can be updated as per Equation \ref{eq:SAQV},
 \begin{equation}
-Q(s,a) = r(s,a) + {\gamma} max_{a'\in A} Q(s',a')
+Q(s,a) \gets Q(s,a) + \alpha [R + {\gamma} \hspace{2} \max_{a'\in A} \hspace{2} Q(s',a') - Q(s,a)]
 \label{eq:SAQV}
 \end{equation}
  
- A Q-Network can be trained by minimising the loss function at each iteration as shown in Equation \ref{eq:DQN} (sn - change this),
+Here, s is the current state, a is the action taken, R is the reward received for taking action, s' is the next state resulting from taking action a, A is the action space, $\alpha$ is the learning rate and $\gamma$ is a parameter that decides the importance of the reward. The closer to zero the value of $\gamma$ is, the more immediate reward the agent will consider. 
 
-\begin{equation} L_{i}(\theta _{i}) = E_{s,a\sim\rho(\cdot)}[(y_{i} - Q(s,a;\theta _{i}))^2]
-\label{eq:DQN}
-\end{equation}
+\section{Deep Reinforcement Learning}
 
-where \(y_{i} = E_{s'\sim\epsilon}[r+\gamma\max\limits_{{a'}}Q(s', a'; \theta_{i-1})|s, a]]\) is the target for iteration i. \(\rho(s,a)\) is the probability distribution over states s and actions a. \(\gamma\) is the discount factor, r is the reward, and \(Q(s,a;\theta)\) is the function approximator to estimate the action-value function \cite{DBLP:journals/corr/MnihKSGAWR13}.
+The problem of reinforcement learning can become challenging if the number of states possible in the environment is too vast. Deep Learning addresses this challenge by approximating the Q-values of the state and action pairs using model parameters called weights\cite{DBLP:journals/corr/MnihKSGAWR13}. The neural network framework consists of an input layer, an output layer and one or more intermediate layers. The neurons in the layer have weights associated with them, which we are trying to optimize. The output generated by the network is compared with the target, and loss will be calculated. Different loss functions are available for comparisons, such as mean square error, cross-entropy loss or maximum likelihood loss. They all represent how far the model's output is compared to the desired result. Once we know the loss value, the gradients can be calculated considering the effect of each parameter on the output. Using an optimizer, such as SGD, Adam, or RMSprop, we can change the weight values to reduce the loss using the calculated gradients. We are moving towards the desired result by doing this in an iterative manner. Performing all these steps manually could help understand how deep learning works, but it could quickly get complicated in practical applications. Luckily, we have libraries such as PyTorch, which can calculate the gradients and perform backpropagation\cite{backpropagation} to develop new network parameters. A classic example of what can be done when Deep Learning and Reinforcement Learning come together is AlphaGo \cite{AlphaGo}, developed by DeepMind, which successfully beat the world champion of the game of Go at that time. Before that, DeepMind had been using Deep Reinforcement Learning to solve the Atari games and achieve human-level performance\cite {DeepMind}.
+
+\section{PyTorch}
+
+PyTorch implements a dynamic graph approach for gradient calculation, where the library keeps track of the operations performed on the data and unrolls this operation sequence when we need to calculate the associated gradients. The basic building block of DL is the \textit{tensor}, representing a multi-dimensional array, which is also implemented by this toolkit. PyTorch has methods to create tensors, convert numpy arrays to tensors, and generate tensors with specific data, such as \textit{torch.ones()}. It can also apply different tensor operations to concatenate, resize and transpose them. The library also allows for offloading the tensor calculations to GPU by specific the \textit{}device property associated with it. A tensor may or may not have gradient construction available, and this behaviour can be configured and retrieved using properties such as \textit{requires\_grad} and \textit{grad}. By using \textit{backward} operation, we can ask PyTorch to calculate the gradients of all the variables in the network. By leveraging \textit{nn.Module} of PyTorch, we can define the network architecture, design dropouts, reinitiate the gradients and apply transformations such as \textit{Softmax}.
 
 \section{Value Function Approximation}
 
-Any form of tabular learning like Q-Learning requires we visit each state multiple times and apply all the available actions to estimate the correct Q-Values. However, this is impractical in most real-world scenarios, especially those involving a vast state space. Also, it takes up a lot of memory to save and update the Q-table containing many states and actions. One workaround is to approximate the Q-Functions using machine learning based on the visited states\cite{580874}. This will allow us to approximate Q-Value for a state-action pair \textit{(s,a)} even if action \textit{a} was never applied in the state \textit{s}. It will also help us to avoid maintaining a large Q table. Linear Function Approximation \cite{P2} is an excellent alternative to Deep Q-Learning here, as it is not as data-hungry as Deep Leaning and requires comparatively less computation.
+Any form of tabular learning like Q-Learning requires we visit each state multiple times and apply all the available actions to estimate the correct Q-Values. However, this is impractical in most real-world scenarios, especially those involving a vast state space. Also, it takes up a lot of memory to save and update the Q-table containing many states and actions. One workaround is to approximate the Q-Functions using machine learning based on the visited states\cite{580874}. This will allow us to approximate Q-Value for a state-action pair \textit{(s,a)} even if action \textit{a} was never applied in the state \textit{s}. It will also help us to avoid maintaining a large Q table. Linear Function Approximation \cite{VF} is an excellent alternative to Deep Q-Learning here, as it is not as data-hungry as Deep Leaning and requires comparatively less computation. The formula for state-action value function can be as stated in Equation \ref{eq:Q_Approx}.
 
 \begin{equation}
-Q(s,a) = f_1(s) * w_1^a + f_2(s) * w_2^a + ... + f_n(s) * w_n^a 
+Q(s,a) = F_1(s,a) * w_1^a + F_2(s,a) * w_2^a + ... + F_n(s,a) * w_n^a 
 \label{eq:Q_Approx}
 \end{equation}
+
+Here, \(f_n(s,a)\) is the feature generated for the \(n^th\) state and action a. The number of features depends on the number of states n and action space A. With each feature \(f^n(s,a)\), a weight \(w_n^a\) is associated for the approximation. Once the reward is received, the weight is updated using the following Equation \ref{eq:W_Approx}.
 
 \begin{equation}
 w_i^a = w_i^a  + {\alpha} * {\delta} * f_i(S),
 \label{eq:W_Approx}
 \end{equation}
 
+\(\delta\) depends on which algorithm we are working on. For Q-learning it is the target value asdefined in Equation \ref{eq:delta}, to be multiplied with the learning rate \(\alpha\) and the value of the feature. The same target value was also used in Equation \ref{eq:SAQV}.
+
 \begin{equation}
-{\delta} = r + {\gamma} * max_{a'} Q(s',a') - Q(s,a)
+{\delta} = R + {\gamma} * \max_{a' \in A} Q(s',a') - Q(s,a)
 \label{eq:delta}
 \end{equation}
 
+ 
+
 \section{Literature Review}
 
-In the domain of compiler optimization, the space of possible transformations
-, including their configurations and orderings are vast. Among these, which optimization to choose depend on the nature of the program itself and the hardware it is running on. Moreover, if the combinations of the optimization selected are not correct for the problem, it can actually degrade the performance.  As the compiler optimizations continue growing, the problem of selecting the effective combination of the optimizaantions is becoming more and more challenging.  With the growing complexities of the systems, software and security, the rate of improvement in the compilers has to keep up to help find answers to the open research problems \cite{compilerresearch}. There is a huge potential for the machine learning algorithm to explore this space, and it has been a topic of interest among researchers for a few decades. However, its success in the industrial compilers in the production environment has not been massive until now. In recent years though, there has been an increasing amount of literature on the subject of Machine Learning for Compiler Optimizations, which provides an excellent background to our research topic.
+In the domain of compiler optimization, the space of possible transformations, including their configurations and orderings are vast. Among these, which optimization to choose depend on the nature of the program itself and the hardware it is running on. Moreover, if the combinations of the optimizations selected are not correct for the problem, it can actually degrade the performance.  As compiler optimizations continue growing, the problem of selecting the effective combination of the optimizaantions is becoming more and more challenging.  With the growing complexities of the systems, software and security, the rate of improvement in the compilers has to keep up to help find answers to the open research problems \cite{compilerresearch}. There is a huge potential for the machine learning algorithm to explore this space, and it has been a topic of interest among researchers for a few decades. However, its success in the industrial compilers in the production environment has not been massive until now. In recent years though, there has been an increasing amount of literature on the subject of Machine Learning for Compiler Optimizations, which provides an excellent background to our research topic.
 
 \cite{inproceedingsml} carried out one of the earliest attempts in this direction to use Machine Learning in branch prediction by giving the input of the branch history and making a prediction. Compy-Learn\cite{9232946} presented a toolbox to explore various representations and models of the code and choose the best one based on the task of the program. \cite{8357388} conducted a systematic review of the research directions undertaken in this field, discussing the importance of feature engineering and model generation and deployment. A significant analysis and discussion on the subject were also presented by Leather \textit{et al.}\cite{9232934}. Deep Learning reduces the dependence on the most accurate representation; rather, the agent will try to find the suitable features given that we provide enough data. This was demonstrated by Cummins \textit{et al.}\cite{inproceedingsdl} using neural networks to learn the code representation to find the best optimizations without using manually created code features.
 
-Reinforcement Learning is seen as one of the most promising approaches for finding the correct strategy for applying optimizations\cite{9232934}. \cite{10.1007} showcased Markow Decision Process based learning(2014) to map the parallelism in the program with computing resources. They were able to adapt to varying resources and programs to predict the best thread mapping and obtained an average speedup of 2.14x over the default OpenMP policy. How to use Reinforcement Learning and Deep Learning in a combined way is no longer an open question, although it is evolving rapidly and a number of studies have begun to examine this method. In 2020, Neurovectorizer \cite{NeuroVectorizer} employed deep RL approach in LLVM compiler to take the code as input and implement vectorization. In the same vein,  Mammadli \textit{et al.} 
-utilised deep reinforcement learning to address the long enduring problem of phase ordering. MLGO \cite{10.48550} used Policy Gradients and Evolutionary Strategies to reduce the size of the code with the help of function inlining. The nature of the optimization was different in this case as the focus was not to improve the heuristics to improve the execution speed.  Along the same lines pf PolyGym, CompilerGym \cite{CompilerGym} builds on top of OpenAI Gym interface and establishes an RL based environment for researchers to interact with compilers.
+Reinforcement Learning is seen as one of the most promising approaches for finding the correct strategy for applying optimizations\cite{9232934}. Almost a decade ago, \cite{10.1007} showcased Markow Decision Process based learning to map the parallelism in the program with computing resources. They were able to adapt to varying resources and programs to predict the best thread mapping and obtained an average speedup of 2.14x over the default OpenMP policy. How to use Reinforcement Learning and Deep Learning in a combined way is no longer an open question, although it is evolving rapidly and a number of studies have begun to examine this method. In 2020, Neurovectorizer \cite{NeuroVectorizer} employed deep RL approach in LLVM compiler to take the code as input and implement vectorization. In the same vein,  Mammadli \textit{et al.} 
+utilised deep reinforcement learning to address the long enduring problem of phase ordering. MLGO \cite{10.48550} used Policy Gradients and Evolutionary Strategies to reduce the size of the code with the help of function inlining. The nature of the optimization was different in this case as the focus was not to improve the heuristics to improve the execution speed.  Along the same lines of PolyGym, CompilerGym \cite{CompilerGym} builds on top of OpenAI Gym interface and establishes an RL based environment for researchers to interact with compilers.
 
 The basis of polyhedral conceptualisation was provided around three decades ago by Feautrier by converting the scheduling problem into a parametric linear program, first for one-dimensional time\cite{single} and then for the multidimensional time by using lexicographic ordering for schedules\cite{multi}. The actual application of polyhedral compilation was presented by Pouchet \textit{et al.} (2007) by construction and exhaustive exploration of single\cite{it_Single} and multi-dimensions\cite{it_multi} search space. Since then, researchers have built iterative methods on top of this. Ganser \textit{et al.} demonstrated how iterative optimization can be used for problems related to tiling and parallelization in compilers\cite{10.1145/3109482}. A year later, they proposed leveraging genetic algorithms to reduce the algorithm benchmarking time, but also losing the speedups by 15\% due to that. This methods of iterative optimization are time consuming, but not dependent on the program they are trying to optimize or the system resources. An alternative to this method are model based heuristics which are more direct but requires domain knowlege and are specific to the problem and system architecture\cite{Bondhugula07pluto:a} \cite{isl}. They are less time consuming compared to iterative meta-heuristics but do not meet the level of their performance. Reinforcement Learning can provide a middle way between the two approaches, reducing the time compared to iterative methods, but outperforming model based methods. 
 
@@ -221,6 +223,8 @@ In the first part, as described in Algorithm \ref{alg:generate_bench}, we genera
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
+\Input{Name of Polybench kernel to test, number of training iterations T}
+\Output{Geometric mean speedup over clang -03}
 
 \State{Initialize PolyGym environment}
 \State{Initialize construction agent\_cons and exploration agent\_expl}
@@ -250,9 +254,7 @@ In the first part, as described in Algorithm \ref{alg:generate_bench}, we genera
     }
 }
 \tcp{Testing}
-\State{P\_speedup \gets 0}
-
-\State{n \gets 0}
+\State{P\_speedup \gets 1}
 
 \For(\tcp*[f]{FLAGS.stop\_at}){each iteration t out of T}
 {
@@ -262,14 +264,13 @@ In the first part, as described in Algorithm \ref{alg:generate_bench}, we genera
         
         P\_speedup \gets P\_speedup * speedup
         
-        n \gets n + 1$
 }
 
-Mean\_Speedup \gets \sqrt[n]{P\_speedup}
+Mean\_Speedup \gets \sqrt[T]{P\_speedup}
 
 \end{algorithm}
 
-While generating and executing the schedule as per Algorithm \ref{alg:generate_bench}, firstly, the environment is reset for the sample being run. The buffer memories are initialized to record the transactions of the generation process. We choose an action using the agent by providing the current observation details and taking a step in the environment. We repeat the step until the schedule is constructed for the construction phase, i.e. when all dependencies are selected. For the exploration phase, we repeat this until the schedule is formulated, i.e. all the coefficients are chosen, and the points are generated for each polytope. We calculate the reward from the speedup achieved during the execution of the schedule to use it to update the weights or Q-table as described in Algorithm \ref{alg:weights_update}. Thus, The reward is sparse, calculated only at the end of schedule execution, and distributed to all the state action pairs from the transaction record. Depending on the problem type, sparse rewards can restrain the training of the agents. PolyGym has already considered different approaches to reward shaping by providing transformed training rewards, for example, the exponent of speedup\cite{Wiewiora2010}. We also provide a negative reward of 0.5 if the schedule is incomplete or results in an execution error. The penalty value is kept low so we do not go far from the optimal actions while avoiding the actions that lead to inconsistency.
+While generating and executing the schedule as per Algorithm \ref{alg:generate_bench}, first, the environment is reset for the sample being run. The buffer memories are initialized to record the transactions of the generation process. We choose an action using the agent by providing the current observation details and taking a step in the environment. We repeat the step until the schedule is constructed for the construction phase, i.e. when all dependencies are selected. For the exploration phase, we repeat this until the schedule is formulated, i.e. all the coefficients are chosen, and the points are generated for each polytope. We calculate the reward from the speedup achieved during the execution of the schedule to use it to update the weights or Q-table as described in Algorithm \ref{alg:weights_update}. Thus, The reward is sparse, calculated only at the end of schedule execution, and distributed to all the state action pairs from the transaction record. Depending on the problem type, sparse rewards can restrain the training of the agents. PolyGym has already considered different approaches to reward shaping by providing transformed training rewards, for example, the exponent of speedup\cite{Wiewiora2010}. We also provide a negative reward of 0.5 if the schedule is incomplete or results in an execution error. The penalty value is kept low so we do not go far from the optimal actions while avoiding the actions that lead to inconsistency.
 
 \begin{algorithm}[H]
 \caption{Generate and Bench Schedule}\label{alg:generate_bench}
@@ -359,7 +360,7 @@ represents the number of total available dependencies across all dimensions whic
   \label{fig:construction}
 \end{figure}
 
-Using this representation, the agent could learn if trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup acquired during the training. While this shows that the agent's implementation is correct, more work was needed to solve the problem of generalisation. While testing this agent on another kernel, the performance was significantly poor.
+Using this representation, the agent could learn if trained and tested on the same kernel. Just within 20 iterations, we achieved an impressive speedup,  even better than the best speedup acquired during the training. While this shows that the agent's implementation is correct, more work was needed to solve the problem of generalisation. While testing this agent on another kernel, the performance was not significant.
 
 A critical piece of information we included was the actual parameters associated with the dependency. A dependency statement can be defined as shown below.
 \begin{equation}
@@ -488,7 +489,7 @@ where \textit{T} is Transition, \textit{s} is the current state in which the act
 
 \section{Evaluation Setup}
 
-PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is a tool to iteratively optimize the program's schedule to increase its performance on multi-core systems. Polyite uses a patched version of Polly to extract Scop and generate the transformed code from the schedule. Polly is built on top of LLVM. Hence, as a first step of the set-up, LLVM[reference to be added], clang and Polly were cloned and built using \textit{cmake}. The next step was building isl[reference to be added] and its binding for Scala 2.11. A wrapper is used to make these isl Scala binding available to Polyite\cite{10.1145/3109482}. Next, two libraries Barvinok\cite{10.5555/261410.261418} and Chernikova\cite{leverge:inria-00074895} were set up. The former calculates the polyhedron's volume, while the latter generates the generator representation from linear constraints. As there is no build tool supplied with Polyite, all the required libraries, such as Apache Commons Lang 3.4, Apache Commons Math 3.6.1, OpenMPI 2.1.1\cite{OpenMPI}, scala-parser-combinators 2.11-1.0.3 were added as dependencies to Scala IDE[reference] to build the tool. Finally, PolyBench version 4.1 was downloaded and unpacked inside Polyite root location. The stack hierarchy is shown in Figure \ref{fig::stack}.
+PolyGym builds atop Polyite \footnote{https://stganser.bitbucket.io/taco2017/}, which is a tool to iteratively optimize the program's schedule to increase its performance on multi-core systems. Polyite uses a patched version of Polly to extract Scop and generate the transformed code from the schedule. Polly is built on top of LLVM. Hence, as a first step of the set-up, LLVM\cite{LLVM:CGO04}, clang and Polly were cloned and built using \textit{cmake}. The next step was building isl\cite{isl} and its binding for Scala 2.11. A wrapper is used to make these isl Scala binding available to Polyite\cite{10.1145/3109482}. Next, two libraries Barvinok\cite{10.5555/261410.261418} and Chernikova\cite{leverge:inria-00074895} were set up. The former calculates the polyhedron's volume, while the latter generates the generator representation from linear constraints. As there is no build tool supplied with Polyite, all the required libraries, such as Apache Commons Lang 3.4, Apache Commons Math 3.6.1, OpenMPI 2.1.1\cite{OpenMPI}, scala-parser-combinators 2.11-1.0.3 were added as dependencies to Scala IDE to build the tool. Finally, PolyBench version 4.1 was downloaded and unpacked inside Polyite root location. The stack hierarchy is shown in Figure \ref{fig::stack}.
 
 \begin{figure}[htbp]  
   \centering
@@ -501,7 +502,7 @@ PolyGym builds atop Polyite [https://stganser.bitbucket.io/taco2017/], which is 
 
 \section{Leave-one-out Evaluation}
 
-We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. Conversely, our testing set should be large enough to accurately measure our agent's performance. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets, train the agent on the set used for testing and test it on the remaining set. In practice, there are generally more than two partitions; we take a different partition each time for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method\cite{inbook}. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly. This method is shown in Figure \ref{fig:leave_one_out} with the help of five different kernels; however, there were more than five kernels during the actual evaluation.
+We have conflicting priorities while distributing training and testing sets. Our training set should be large enough for the agent to learn correctly. Conversely, our testing set should be large enough to accurately measure our agent's performance. One approach to finding a middle way is to perform cross-validation, where we train and test our algorithm on the same data multiple times. We first train the agent on the training set and measure the performance on the testing set. On the next iteration, we flip the sets, train the agent on the set used for testing and test it on the remaining set. In practice, there are generally more than two partitions; we take a different partition each time for testing. In the end, we take an average of the performance of each instance. In this case, for n number of kernel examples, we tested the agent on one loop kernel after training it on n-1 kernels. Each time leave one kernel out and train the agent on other kernels, which is similar to the Leave-One-Out evaluation method\cite{inbook}. This way, our agent is exposed to the most learning, although it has increased the overall computation significantly. For demonstration purpose, this method is shown in Figure \ref{fig:leave_one_out} using five kernels, in our study, we have performed evaluation on more than fifteen kernels.
 
 \begin{figure}[htbp]
   \centering
@@ -510,15 +511,17 @@ We have conflicting priorities while distributing training and testing sets. Our
   \label{fig:leave_one_out} 
 \end{figure}
 
-\Section{Results}
- We are trying to answer two major questions by undertaking this study. The first question is how is PolyGymRL faring compared to the original PolyGym implementation. The next question is related to comparing the difference between the performance of different algorithm variations. As a basic primary check, we are comparing the single kernel performance of PolyGym with PolyGymRL, meaning we are performing the test on the same loop we used during the training. In this case, we expect to yield higher speedups as no generalisation is involved. The comparison of single kernel performance of PolyGym and PolyGymRL is shown in Figure \ref{fig:single_PolyGym_PolyGymRL}. As no training is involved in PolyGym, the heuristics can yield different results each time.  In the case of PolyGYmRL, we have trained the agent on a kernel for 12 iterations. We test both implementations for three iterations and take the geometric mean of the results. Notably, the original PolyGym research paper listed the best result, while here we are considering the geometric mean values; hence both research findings are not directly comparable, especially as it is heavily based on randomness. For the second experiment, as shown \ref{fig:multi_PolyGym_PolyGymRL}, we work with different sets of kernels in training and testing, using leave-one-out evaluation. From both charts, it can be seen that PolyGymRL reported better speedups thanks to the learning of the agent. From this data, we can also see that when we work with different sets of kernels in training and testing, the acquired speedup does not match the standards of single-loop training as it is often in the case of generalisation.
+\section{Results}
+ We are trying to answer two major questions by undertaking this study. The first question is how is PolyGymRL faring compared to already proven heuristics. The next question is related to comparing the difference between the performance of different algorithm variations. As a basic primary check, we are comparing the single kernel performance of PolyGymRL with a simple heuristic which traverses through the search space defined by PolyGym. What we mean by single kernel performance is that we are testing the performance on the same loop we used for training. First, we run the simple heuristics that perform the iterative process, for 12 iterations, and note the best speedup for each kernel. For PolyGymRL, we run 12 iterations of training for each kernel, test them for 3 iterations and note the geometric mean of the speedups. The comparison of the results obtained through this experiment can be seen in Figure \ref{fig:single_PolyGym_PolyGymRL}. For most of the kernels, we obtain better performance in PolyGymRL. The random heuristics will yield different results each time as no training is involved. Notably, this is the same heuristic which was used in the original PolyGym research paper to demonstrate the potential of the formulated search space.
 
-\begin{figure}[htbp]
+ \begin{figure}[htbp]
   \centering
   \includegraphics[width=0.75\textwidth]{Images/Chart_Single_PolyGym_PolyGymRL.png}    
   \caption{Comparison of Average Speedup achieved in PolyGym and PolyGymRL while training and testing on the same kernel}
   \label{fig:single_PolyGym_PolyGymRL}
 \end{figure}
+
+ For the second experiment, we work with different sets of kernels in training and testing, using leave-one-out evaluation for PolyGymRL. Ideally, it should be compared with a direct method like Pluto\cite{Bondhugula07pluto:a}, but given the time constraint of the project, we run the heuristics mentioned above for 100 iterations instead of 12, and note the best speedup for each kernel again. The idea behind doing this is to prepare a high performing benchmark which can be used to compare our implementation. We again compare the results with the geometric means taken for the best PolyGymRL strategy, which is discussed in this section later. We did not expect our algorithm to outperform this benchmark, but we can measure the potential of our work and how far it stands from the baseline, which is clang -O3. As shown in \ref{fig:multi_PolyGym_PolyGymRL}, PolyGymRL fared well, although it did not obtain speedups higher than the best speedup measured by the random heuristic for most kernels. This clearly shows that formulation is able to generalise over different kernels. From both charts, it can be seen that PolyGymRL reported better speedups thanks to the learning of the agent. Another point of interest here is that when we work with different sets of kernels in training and testing, the acquired speedup does not match the standards of single-loop training. This is not unexpected as it is often in the case of generalisation.
 
 \begin{figure}[htbp]
   \centering
@@ -527,51 +530,56 @@ We have conflicting priorities while distributing training and testing sets. Our
   \label{fig:multi_PolyGym_PolyGymRL}
 \end{figure}
 
-If we now turn to our next analysis, we compare the results of PolyGymRL for various strategies and configurations. We have mainly considered three factors: standardisation, representation and bias. Figure \ref{fig:Std_Chart} and Figure \ref{fig:NoStd_Chart} presents the mean speedups obtained for different PolyBench kernels with or without applying the standardisation. How we have applied the standardisation is explained in more detail in \ref{sec:std}. The last data on the horizontal axis corresponds to the average taken across all the kernels for the respective strategy. The average speedups for the strategies involving standardisation yields 1.23x better performance than those without standardisation. Moving now to the experimental evidence on the effect of keeping simple or full representation, the results can be seen in \ref{fig:Simple_Chart} and \ref{fig:NoSimple_Chart}. The agents seem to utilise the detailed information provided in the full representation to make better decisions. Figure \ref{fig:Bias_Chart} and Figure \ref{fig:NoBias_Chart} compare the results obtained while keeping bias for action \textit{select\_coeff0} during exploration versus otherwise. The difference between both strategies was significant, as selecting lower coefficients might help find the less complex schedules. A comparison among all these strategies is provided in Figure \ref{fig:PolyGymRL_Versions}. There are also some more comparison charts included in the Appendix Section \ref{sec:Compare_Versions}.
+If we now turn to our next analysis, we compare the results of PolyGymRL for various strategies and configurations. We have mainly considered three factors: standardisation, representation and bias. Figure \ref{fig:Std_Chart} and Figure \ref{fig:NoStd_Chart} present the mean speedups obtained for different PolyBench kernels with or without applying the standardisation. How we have applied the standardisation is explained in more detail in \ref{sec:std}. The last reading on the horizontal axis corresponds to the geometric mean taken across all the kernels for the respective strategy. The average speedups for the strategies involving standardisation yields 1.15x better performance than those without standardisation. 
 
 \begin{figure}
 \centering
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/Std_Chart.png}
-  \captionof{figure}{With Standardisation (Mean: 1.40)}
+  \captionof{figure}{With Standardisation}
   \label{fig:Std_Chart}
 \end{minipage}
 \hspace{.05\linewidth}
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/NoStd_Chart.png}
-  \captionof{figure}{Without Standardisation (Mean: 1.14)}
+  \captionof{figure}{Without Standardisation}
   \label{fig:NoStd_Chart}
 \end{minipage}
 \State{Comparison of PolyGymRL Results for Standardisation and No Standardisation Approach}
 \end{figure}
 
+Moving now to the experimental evidence on the effect of keeping a simple or full representation, the results can be seen in \ref{fig:Simple_Chart} and \ref{fig:NoSimple_Chart}. To reiterate, the simple representation only keeps the record of basic information, for example, the counters for dimension, dependency and generator, or the number of strongly added dependencies in the current dimension. Full representation contains the whole dependency information including the linear inequalities or the points generated until the current state during exploration. The results, as shown in these two charts, along with \ref{fig:PolyGymRL_Strategies}, indicate that the agents seem to utilise the detailed information provided in the full representation to make better decisions. 
+
+
 \begin{figure}
 \centering
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/Simple_Chart.png}
-  \captionof{figure}{Simple Representation (Mean: 0.98)}
+  \captionof{figure}{Simple Representation}
   \label{fig:Simple_Chart}
 \end{minipage}
 \hspace{.05\linewidth}
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/NoSimple_Chart.png}
-  \captionof{figure}{Full Representation (Mean: 1.40)}
+  \captionof{figure}{Full Representation}
   \label{fig:NoSimple_Chart}
 \end{minipage}
 \State{Comparison of PolyGymRL Results for Simple and Full Representation}
 \end{figure}
 
+Figure \ref{fig:Bias_Chart} shows the results collected while keeping the bias for action \textit{select\_coeff0} during exploration. The results obtained from running the experiments without keeping any bias are provided in Figure \ref{fig:NoBias_Chart}. Both strategies' performance differences were significant, as this bias might help produce less complex schedules. A comparison among all these strategies is provided in Figure \ref{fig:PolyGymRL_Versions}. Some more comparison charts are also included in the Appendix Section \ref{sec:Compare_Versions}.
+
 \begin{figure}`
 \centering
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/Bias_Chart.png}
-  \captionof{figure}{With Bias(Mean: 1.76)}
+  \captionof{figure}{With Bias}
   \label{fig:Bias_Chart}
 \end{minipage}
 \hspace{.05\linewidth}
 \begin{minipage}{.45\linewidth}
   \includegraphics[width=\linewidth]{Images/NoBias_Chart.png}
-  \captionof{figure}{Without Bias(Mean: 0.79)}
+  \captionof{figure}{Without Bias)}
   \label{fig:NoBias_Chart}
 \end{minipage}
 \State{Comparison of PolyGymRL Results with and without bias while selecting coefficients}
@@ -593,7 +601,7 @@ If we now turn to our next analysis, we compare the results of PolyGymRL for var
 Figure \ref{fig:PolyGymRL_Strategies} shows category wise comparison of different approaches undertaken in the study. What is interesting about the data in this table is that it clearly demonstrates that better schedules can be generated while applying standardisation, using full representation and keeping the bias toward selecting coefficients. Interestingly though, the version involving bias, full representation and standardisation does not yield the best result among all. This is a rather unexpected outcome. Surprisingly, some kernels like \textit{2mm} did not perform as well as expected under this category. In the below sections, we have discussed possible reasons for some inconsistencies in the findings and not very significant performances of some kernels. More advanced algorithms and effective parameter search, such as the number of schedules, training iterations, and learning parameters which were not the point of focus in this study, may help resolve some of the issues and improve what we have implemented until now.
 
 \section{Limitation of the Training Set}
-The training set we have selected is limited and it is unlikely that it might represent all the required characteristics for generating a performant schedule. The construction phase state representation has nearly 300 variables, and the explorations state has more than 1000 variables. For the construction phase, if we assume that each of the 300 variables has a range of 3 different values (although some features like dimensions are not bounded and can have more than 10 values), there are 45451 combinations possible just for the construction. For exploration, it can easily exceed 500 thousand combination possibilities. While this is not a bottleneck in terms of computation anymore, it is vital to have enough data to make learning accurate. No matter how clever the algorithm is, it may not beat a simple algorithm with extensive data, as the underlying approximation will mostly stay the same with different algorithms. The number of dependencies varies from 2 to 81 in the subset of just more than 15 kernels we have chosen. Hence, while testing a new kernel, we may not encounter any "nearby" cases from the training. This is just one of many factors associated with the limitations of our results in this experiment. 
+The training set we have selected is limited and it is unlikely that it might represent all the required characteristics for generating a performant schedule. For a kernel like \textit{3mm}, the construction phase state representation has nearly 300 variables, and the explorations state has more than 900 variables. For the construction phase, if we assume that each of the 300 variables has a range of 3 different values (although some features like dimensions are not bounded and can have more than 10 values), there are 45451 combinations possible just for the construction. For exploration, it can easily exceed 500 thousand combination possibilities. While this is not a bottleneck in terms of computation anymore, it is vital to have enough data to make learning accurate. No matter how clever the algorithm is, it may not beat a simple algorithm with extensive data, as the underlying approximation will mostly stay the same with different algorithms. The number of dependencies varies from 2 to 81 in the subset of just more than 15 kernels we have chosen. Hence, while testing a new kernel, we may not encounter any "nearby" cases from the training. This is just one of many factors associated with the limitations of our results in this experiment. 
 
 \section{Varying State Sizes in Reinforcement Learning}
 As stated earlier, another issue related to the type of problem in the discussion is that the state size varies significantly with each kernel. For a simple kernel like \textit{mvt}, the number of dimensions is 1, and the list of generators has a size of 8 during the exploration phase. While in the case of \textit{3mm}, the dimension size is 7, each containing 51 vertices and rays. Thus, the difference in the size of the state is vast. This difference makes the implementation of Reinforcement Learning algorithms on this problem a complex task, especially for those involving either some form of approximation or deep learning. One has to consider the right choice of representation for the features and other typical values of the features. For the kernel requiring a smaller state size, a more extensive state size might add some noise to the learning procedure, increasing the number of computations and memory required to store the data.
@@ -602,7 +610,7 @@ As stated earlier, another issue related to the type of problem in the discussio
 \label{sec:std}
 The range of values of different features used in the representation varies considerably in this experiment. The number of dimensions theoretically varies in the range of (0, $\infty$). The dependency representation in the form of linear inequalities gives values in the range of (-$\infty$, $\infty$). The dependencies added in the current dimensions are either 0 or 1. At the same time, the points resulting from the coefficients and the generators in each dimension ranges from (-$\infty$, $\infty$) during exploration. Thus, various state features are unbounded, for example, the number of dimensions in the construction phase, or the number and length of the generators in the exploration phase. Without standardisation, the weights of the Q-learning can quickly go to infinity. Moreover, the importance of all the features remains inconsistent leading to incorrect learning. On the other hand, standardising the values is only straightforward with the apparent minimum and maximum values. To convert the values ranging from (-$\infty$, $\infty$) to (0,1), we have used the standard logistic function \[{1/1+e^{-x}}\]. While to convert (0, $\infty$) to (0,1), we have used the function \[{x / (1 + x)}\]. This standardisation helps keep the weights within the limit and gives equal importance to all the features. However, there will always be some loss of information due to this.
 
-\begin{figure}[htbp]
+\begin{figure}
   \centering
   \includegraphics[width=\textwidth]{Images/Standardisation.png}    
   \caption{Standardisation Functions used in PolyGymRL Features}
@@ -612,7 +620,7 @@ The range of values of different features used in the representation varies cons
 
 \chapter{Conclusions}
 
-There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. A few general challenges are associated with applying RL algorithms to compiler optimizations. The representation space is huge, and evaluating as we run the programs to obtain the rewards takes time. Dealing with these challenges, we successfully implemented RL agents to learn the general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
+The aim of the present research was to examine if we can generalise Q-Learning to produce profiting schedules irrespective of the target kernel. To achieve that, we needed to formulate the correct state representation as an observation for our agent and design a reward function to aid the learning process. These experiments confirmed that Reinforcement Learning algorithm could help improve Polyhedral Compilation, as we achieved 1.44x over clang -O3 with the optimal strategy, and 1.61x speedup over clang -O3 when considering the best strategy for each kernel individually. There were two most challenging aspects associated with the investigation in the discussion. Firstly, understanding polyhedral models presents a technical barrier that makes this type of research difficult. Secondly, even though we have taken just a subset of the kernels from all the possibilities in the industrial practice, it is still a complex task to generalise a learning behaviour that can apply to a specific type of loop with a regular structure. A few general challenges are associated with applying RL algorithms to compiler optimizations. The representation space is huge, and evaluating as we run the programs to obtain the rewards takes time. Dealing with these challenges, we successfully implemented RL agents to learn the loop-agnostic general characteristics of building a good schedule irrespective of the test loop. At the same time, PolyGymRL presents an opportunity and example to continue this research direction to try out more advanced algorithms to improve the loop execution performance.
 
 \section{Unresolved Issues and Future Work}
 
@@ -645,22 +653,20 @@ There were a few kernels like \textit{durbin}, which involve a very high search 
 
 \begin{figure}
 \centering
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/Benchmarking_Single.png}
-  \captionof{figure}{Results of PolyGym and PolyGymRL for single kernel}
-  \label{Benchmarking_Single}
-\end{minipage}
-\hspace{.05\linewidth}
-\begin{minipage}{.45\linewidth}
-  \includegraphics[width=\linewidth]{Images/Benchmarking_Multiple.png}
-  \captionof{figure}{Results of PolyGym and PolyGymRL for multiple kernels}
-  \label{Benchmarking_Multiple}
-\end{minipage}
-\State{Results Comparison of PolyGym and PolyGymRL for single and multiple kernels}
+\includegraphics[width=0.7\linewidth]{Images/Benchmarking_Single.png}
+\captionof{figure}{Results comparison of random heuristic and PolyGymRL for single kernel training}
+\label{Benchmarking_Single}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\linewidth]{Images/Benchmarking_Multiple.png}
+\captionof{figure}{Results of random heuristic and PolyGymRL for leave-one-out}
+\label{Benchmarking_Multiple}
 \end{figure}
 
 
-\chapter{Results Graph}
+\chapter{Results Analysis}
 
 \section{Comparison of PolyGymRL Versions}
 \label{sec:Compare_Versions}
@@ -686,10 +692,12 @@ There were a few kernels like \textit{durbin}, which involve a very high search 
   \label{fig:Compare_Bias} 
 \end{figure}
 
-\chapter{Deep Learning Implementation}
+\chapter{Deep Reinforcement Learning Implementation}
+
+While this study focused on implementing Q-learning and its variations, deep learning has huge potential to leverage our formulation and create profitable schedules. For future work, we have already implemented the DQN agent using PyTorch, with two deep networks, one for learning and one as a target. The parameter search for the deep learning, such as size of the intermediate layers, update frequencies, learning rate requires extensive work and presents the scope of further study. Algorithm \ref{alg:DQN} defines the implementation of DQN algorithm.
 
 \begin{algorithm}[H]
-\caption{Update Agent Weights}\label{alg:weights_update}
+\caption{Deep Q-Learning}\label{alg:DQN}
 \SetKwData{Left}{left}\SetKwData{This}{this}\SetKwData{Up}{up}
 \SetKwFunction{Union}{Union}\SetKwFunction{FindCompress}{FindCompress}
 \SetKwInOut{Input}{input}\SetKwInOut{Output}{output}
